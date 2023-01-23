@@ -1,12 +1,8 @@
 {
   "ExpandedNodes": [
     "",
-    "\\GPR300_EmptyWindow",
-    "\\vendor",
-    "\\vendor\\GLEW",
-    "\\vendor\\GLEW\\include",
-    "\\vendor\\GLEW\\include\\GL"
+    "\\GPR300_EmptyWindow"
   ],
-  "SelectedNode": "\\GPR300_EmptyWindow\\GPR300_EmptyWindow.vcxproj",
+  "SelectedNode": "\\GPR300_EmptyWindow\\main.cpp",
   "PreviewInSolutionExplorer": false
 }
