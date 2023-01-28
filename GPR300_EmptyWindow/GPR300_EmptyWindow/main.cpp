@@ -28,24 +28,50 @@ const char* fragmentShaderSource =
 "   FragColor = vec4(abs(sin(_Time))*Color, 1.0); \n"
 "} \0";
 
-//TODO: Vertex data array
-const float vertexData[] = {
-	//x		y		z		color
-	//Triangle 1
-	-0.8,	-0.25,	0.0,	1.0, 0.0, 0.0, 1.0,
-	-0.2,	-0.25,	0.0,	0.0, 1.0, 0.0, 1.0,
-	-0.5,	0.25,	0.0,	0.0, 0.0, 1.0, 1.0,
-
-	//Triangle 2
-	-0.2,	-0.25,	0.0,	0.0, 0.0, 1.0, 1.0,
-	0.4,	-0.25,	0.0,	1.0, 0.0, 0.0, 1.0,
-	0.1,	0.25,	0.0,	0.0, 1.0, 0.0, 1.0,
-
-	//Triangle 3
-	0.4,	-0.25,	0.0,	0.0, 1.0, 0.0, 1.0,
-	1,		-0.25,	0.0,	0.0, 0.0, 1.0, 1.0,
-	0.7,	0.25,	0.0,	1.0, 0.0, 0.0, 1.0,
+struct Vec3 {
+	float x, y, z;
 };
+struct Color {
+	float r, g, b, a;
+};
+struct Vertex {
+	Vec3 pos;
+	Color color;
+};
+
+Vertex vertexData[] = {
+	//Triangle 1
+	Vertex{Vec3{-0.8, -0.25, 0.0}, Color{1.0, 0.0, 0.0, 1.0}},
+	Vertex{Vec3{-0.2, -0.25, 0.0}, Color{1.0, 0.0, 0.0, 1.0}},
+	Vertex{Vec3{-0.5, 0.25, 0.0}, Color{1.0, 0.0, 0.0, 1.0}},
+	//Triangle 2
+	Vertex{Vec3{-0.2, -0.25, 0.0}, Color{0.0, 1.0, 0.0, 1.0}},
+	Vertex{Vec3{0.4, -0.25, 0.0}, Color{0.0, 1.0, 0.0, 1.0}},
+	Vertex{Vec3{0.1, 0.25, 0.0}, Color{0.0, 1.0, 0.0, 1.0}},
+	//Triangle 3
+	Vertex{Vec3{0.4, -0.25, 0.0}, Color{0.0, 0.0, 1.0, 1.0}},
+	Vertex{Vec3{1, -0.25, 0.0}, Color{0.0, 0.0, 1.0, 1.0}},
+	Vertex{Vec3{0.7, 0.25, 0.0}, Color{0.0, 0.0, 1.0, 1.0}},
+};
+
+//TODO: Vertex data array
+//const float vertexData[] = {
+//	//x		y		z		color
+//	//Triangle 1
+//	-0.8,	-0.25,	0.0,	1.0, 0.0, 0.0, 1.0,
+//	-0.2,	-0.25,	0.0,	1.0, 0.0, 0.0, 1.0,
+//	-0.5,	0.25,	0.0,	1.0, 0.0, 0.0, 1.0,
+//
+//	//Triangle 2
+//	-0.2,	-0.25,	0.0,	0.0, 1.0, 0.0, 1.0,
+//	0.4,	-0.25,	0.0,	0.0, 1.0, 0.0, 1.0,
+//	0.1,	0.25,	0.0,	0.0, 1.0, 0.0, 1.0,
+//
+//	//Triangle 3
+//	0.4,	-0.25,	0.0,	0.0, 0.0, 1.0, 1.0,
+//	1,		-0.25,	0.0,	0.0, 0.0, 1.0, 1.0,
+//	0.7,	0.25,	0.0,	0.0, 0.0, 1.0, 1.0,
+//};
 
 int main() {
 	if (!glfwInit()) {
@@ -76,7 +102,7 @@ int main() {
 	{
 		GLchar infoLog[512];
 		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		printf("Failed to compile vertex shader: &s");
+		printf("Vertex shader failed: &s");
 	}
 	
 	//TODO: Create and compile fragment shader
@@ -91,7 +117,7 @@ int main() {
 	{
 		GLchar infoLog[512];
 		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		printf("Failed to compile fragment shader: &s");
+		printf("Fragment shader failed: &s");
 	}
 
 	//TODO: Create shader program
@@ -116,7 +142,7 @@ int main() {
 	}
 
 	//TODO: Delete vertex + fragment shader objects
-	//glDeleteShader(...)
+	glDeleteShader(shaderProgram);
 
 	//TODO: Create and bind Vertex Array Object (VAO)
 	//create a new vertex array object
@@ -126,7 +152,7 @@ int main() {
 	glBindVertexArray(vertexArrayObject);
 
 	//TODO: Create and bind Vertex Buffer Object (VBO), fill with vertexData
-	//gernerate a buffer with an id
+	//generate a buffer with an id
 	GLuint vertexBufferObject;
 	glGenBuffers(1, &vertexBufferObject);
 
@@ -137,9 +163,11 @@ int main() {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
 
 	//TODO: Define vertex attribute layout
+	//triangle data
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (const void*)0);
 	glEnableVertexAttribArray(0);
 
+	//color
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (const void*)(sizeof(float)*3));
 	glEnableVertexAttribArray(1);
 
