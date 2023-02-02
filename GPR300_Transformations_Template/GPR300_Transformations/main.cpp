@@ -18,6 +18,8 @@
 #include "EW/Shader.h"
 #include "EW/ShapeGen.h"
 
+#include <math.h>
+
 void resizeFrameBufferCallback(GLFWwindow* window, int width, int height);
 void keyboardCallback(GLFWwindow* window, int keycode, int scancode, int action, int mods);
 
@@ -43,42 +45,42 @@ float exampleSliderFloat = 0.0f;
 
 namespace matrises
 {
+	glm::mat4 vec3 transform, rotation, size;
+
 	glm::mat4 scale(glm::vec3 s)
 	{
 		return glm::mat4(
 			s.x, 0,  0,   0,
-			0,  x.y, 0,   0,
+			0,  s.y, 0,   0,
 			0,  0,  s.z,  0,
 			0,  0,   0,   1
 		);
 	}
 
-	/*glm::mat4 rotate(glm::vec3 r)
+	glm::mat4 rotate(glm::vec3 r)
 	{
-		glm::mat4 rotatex(glm::vec3 x)
-		{
-			return glm::mat4(
-
-			);
-		}
-		glm::mat4 rotatey(glm::vec3 y)
-		{
-			return glm::mat4(
-
-			);
-		}
-		glm::mat4 rotatez(glm::vec3 z)
-		{
-			return glm::mat4(
-
-			);
-		}
-
-		return rotatex * rotatey * rotatez;
-
+		glm::mat4 rotateX(
+			1, 0, 0, 0,
+			0, cos(r.x), sin(r.x), 0,
+			0, -sin(r.x), cos(r.x), 0,
+			0, 0, 0, 1
 		);
+		glm::mat4 rotateY(
+			cos(r.y), 0, sin(r.y), 0,
+			0, 1, 0, 0,
+			sin(r.y), 0, cos(r.y), 0,
+			0, 0, 0, 1
+		);
+		glm::mat4 rotateZ(
+			cos(r.z), sin(r.z), 0, 0,
+			-sin(r.z), cos(r.z), 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1
+		);
+
+		return rotateX * rotateY * rotateZ;
 	}
-	*/
+	
 
 	glm::mat4 translate(glm::vec3 t)
 	{
@@ -88,6 +90,15 @@ namespace matrises
 			0,    0,   1,  0,   //column 2
 			t.x, t.y, t.z, 1    //column 3
 		);
+	}
+
+	glm::mat4 getModelMatrix()
+	{
+		glm::mat4 rot = rotate(rotation);
+		glm::mat4 tran = translate(translation);
+		glm::mat4 scal = scale(size);
+
+		return scal * rot * tran;
 	}
 }
 
@@ -150,9 +161,11 @@ int main() {
 
 		//Draw
 		shader.use();
-		//shader.setMat4("_Model", glm:mat4(1));
-
-		cubeMesh.draw();
+		for (size_t i = 0; i < 3; i++)
+		{
+			shader.setMat4("_Model", transforms[i].getModelMatrix());
+			cubeMesh.draw();
+		}
 
 		//Draw UI
 		ImGui::Begin("Settings");
