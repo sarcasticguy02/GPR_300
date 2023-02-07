@@ -40,7 +40,6 @@ const int MOUSE_TOGGLE_BUTTON = 1;
 const float MOUSE_SENSITIVITY = 0.1f;
 
 glm::vec3 bgColor = glm::vec3(0);
-float exampleSliderFloat = 0.0f;
 
 //UI Variables
 float radius = 1.0f, speed = 1.0f, fov = 60.0f, height = 10.0f;
@@ -88,10 +87,10 @@ struct Transform
 	glm::mat4 position(glm::vec3 t)
 	{
 		return glm::mat4(
-			1, 0, 0, t.x,   //column 0
-			0, 1, 0, t.y,   //column 1
-			0, 0, 1, t.z,   //column 2
-			0, 0, 0, 1   //column 3
+			1, 0, 0, 0,   //column 0
+			0, 1, 0, 0,   //column 1
+			0, 0, 1, 0,   //column 2
+			t.x, t.y, t.z, 1   //column 3
 		);
 	}
 
@@ -103,10 +102,10 @@ struct Transform
 
 struct Camera
 {
-	glm::vec3 camPos, target = glm::vec3(0, 0, 0);
+	glm::vec3 camPos = glm::vec3(0, 0, 10), target = glm::vec3(0, 0, 0);
 	glm::mat4 getViewMatrix()
 	{
-		glm::vec3 forward = glm::normalize(camPos - target);
+		glm::vec3 forward = glm::normalize(target - camPos);
 		glm::vec3 u = glm::vec3(0, 1, 0);
 		glm::vec3 right = glm::normalize(cross(forward, u));
 		glm::vec3 up = glm::normalize(cross(right, forward));
@@ -114,42 +113,41 @@ struct Camera
 		forward = -forward;
 
 		glm::mat4 rCam = glm::mat4(
-			right.x, right.y, right.z, 0,
-			up.x, up.y, up.z, 0,
-			forward.x, forward.y, forward.z, 0,
+			right.x, up.x, forward.x, 0,
+			right .y, up.y, forward.y, 0,
+			right.z, up.z, forward.z, 0,
 			0, 0, 0, 1
 		);
 		glm::mat4 tCam = glm::mat4(
-			1, 0, 0, -camPos.x,
-			0, 1, 0, -camPos.y,
-			0, 0, 1, -camPos.z,
-			0, 0, 0, 1
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			-camPos.x, -camPos.y, -camPos.z, 1
 		);
 
 		return rCam * tCam;
-		//return glm::lookAt(camPos, camPos + forward, glm::vec3(0, 1, 0));
 	};
 
 	glm::mat4 getProjectionMatrix()
 	{
 		if (orthographic)
-			return ortho(height, (float)SCREEN_HEIGHT/(float)SCREEN_WIDTH, .01f, 100.0f);
+			return ortho(height, (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, .01f, 100.0f);
 		else
-			return perpective(fov, (float)SCREEN_HEIGHT / (float)SCREEN_WIDTH, .01f, 100.0f);
+			return perpective(fov, (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, .01f, 100.0f);
 	};
 
 	glm::mat4 ortho(float h, float aspectRatio, float near, float far)
 	{
 		float r = h * aspectRatio;
 		float l = -r;
-		float t = h * 0.5f;
+		float t = h;
 		float b = -t;
 		
 		return glm::mat4(
-			2 / (r - l), 0, 0, -(r + l) / (r - l),
-			0, 2 / (t - b), 0, -(t + b) / (t - b),
-			0, 0, -2 / (far - near), -(far + near) / (far - near),
-			0, 0, 0, 1
+			2 / (r - l), 0, 0, 0,
+			0, 2 / (t - b), 0, 0,
+			0, 0, -2 / (far - near), 0,
+			-(r + l) / (r - l), -(t + b) / (t - b), -(far + near) / (far - near), 1
 		);
 
 	};
@@ -166,7 +164,7 @@ struct Camera
 };
 
 int main() {
-	Transform trans;
+	Transform cube1, cube2, cube3, cube4, cube5;
 	Camera cam;
 
 	if (!glfwInit()) {
@@ -213,10 +211,21 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
-	trans.scale = glm::vec3(1, 1, 1);
-	trans.pos = glm::vec3(0, 0, 0);
-	cam.camPos = glm::vec3(0, 0, 5);
-	cam.target = glm::vec3(0, 0, 0);
+	cube1.scale = glm::vec3((rand()%2) + 1, (rand()%2) + 1, (rand()%2) + 1);
+	cube1.pos = glm::vec3(rand()%5, rand() % 5, rand() % 5);
+	cube1.rot = glm::vec3(rand() % 5, rand() % 5, rand() % 5);
+	cube2.scale = glm::vec3((rand() % 2) + 1, (rand() % 2) + 1, (rand() % 2) + 1);
+	cube2.pos = glm::vec3(rand() % 5, rand() % 5, rand() % 5);
+	cube2.rot = glm::vec3(rand() % 5, rand() % 5, rand() % 5);
+	cube3.scale = glm::vec3((rand() % 2) + 1, (rand() % 2) + 1, (rand() % 2) + 1);
+	cube3.pos = glm::vec3(rand() % 5, rand() % 5, rand() % 5);
+	cube3.rot = glm::vec3(rand() % 5, rand() % 5, rand() % 5);
+	cube4.scale = glm::vec3((rand() % 2) + 1, (rand() % 2) + 1, (rand() % 2) + 1);
+	cube4.pos = glm::vec3(rand() % 5, rand() % 5, rand() % 5);
+	cube4.rot = glm::vec3(rand() % 5, rand() % 5, rand() % 5);
+	cube5.scale = glm::vec3((rand() % 2) + 1, (rand() % 2) + 1, (rand() % 2) + 1);
+	cube5.pos = glm::vec3(rand() % 5, rand() % 5, rand() % 5);
+	cube5.rot = glm::vec3(rand() % 5, rand() % 5, rand() % 5);
 
 	while (!glfwWindowShouldClose(window)) {
 		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
@@ -233,15 +242,25 @@ int main() {
 		//Draw
 		shader.use();
 
-		/*for (size_t i = 0; i < 3; i++)
-		{
-			shader.setMat4("_Model", Transform.getModelMatrix());
-			cubeMesh.draw();
-		}*/
-		shader.setMat4("_Model", trans.getModelMatrix());
+		shader.setMat4("_Model", cube1.getModelMatrix());
+		cubeMesh.draw();
+		shader.setMat4("_Model", cube2.getModelMatrix());
+		cubeMesh.draw();
+		shader.setMat4("_Model", cube3.getModelMatrix());
+		cubeMesh.draw();
+		shader.setMat4("_Model", cube4.getModelMatrix());
+		cubeMesh.draw();
+		shader.setMat4("_Model", cube5.getModelMatrix());
 		shader.setMat4("_View", cam.getViewMatrix());
 		shader.setMat4("_Projection", cam.getProjectionMatrix());
 		cubeMesh.draw();
+		/*cubeMesh2.draw();
+		cubeMesh3.draw();
+		cubeMesh4.draw();*/
+
+		//Camera Movement
+		cam.camPos.x = cos(time * speed) * radius;
+		cam.camPos.z = sin(time * speed) * radius;
 
 		//Draw UI
 		ImGui::Begin("Settings");
