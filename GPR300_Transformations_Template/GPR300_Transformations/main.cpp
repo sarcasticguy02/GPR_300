@@ -43,7 +43,7 @@ glm::vec3 bgColor = glm::vec3(0);
 float exampleSliderFloat = 0.0f;
 
 //UI Variables
-float radius = 10.0f, speed = 10.0f, fov = 10.0f, height = 10.0f;
+float radius = 1.0f, speed = 1.0f, fov = 60.0f, height = 10.0f;
 bool orthographic = false;
 
 struct Transform
@@ -88,77 +88,79 @@ struct Transform
 	glm::mat4 position(glm::vec3 t)
 	{
 		return glm::mat4(
-			1, 0, 0, 0,   //column 0
-			0, 1, 0, 0,   //column 1
-			0, 0, 1, 0,   //column 2
-			t.x, t.y, t.z, 1    //column 3
+			1, 0, 0, t.x,   //column 0
+			0, 1, 0, t.y,   //column 1
+			0, 0, 1, t.z,   //column 2
+			0, 0, 0, 1   //column 3
 		);
 	}
 
 	glm::mat4 getModelMatrix()
 	{
-		return size(scale) * rotate(rot) * position(pos);
+		return  position(pos) * size(scale) * rotate(rot);
 	}
 };
 
 struct Camera
 {
-	glm::vec3 camPos = glm::vec3(0, 0, 3), target = glm::vec3(0, 0, 0);
+	glm::vec3 camPos, target = glm::vec3(0, 0, 0);
 	glm::mat4 getViewMatrix()
 	{
-		glm::vec3 forward = target - camPos;
+		glm::vec3 forward = glm::normalize(camPos - target);
 		glm::vec3 u = glm::vec3(0, 1, 0);
-		glm::vec3 right = cross(forward, u);
-		glm::vec3 up = cross(right, forward);
+		glm::vec3 right = glm::normalize(cross(forward, u));
+		glm::vec3 up = glm::normalize(cross(right, forward));
 
 		forward = -forward;
 
 		glm::mat4 rCam = glm::mat4(
-			right.x, up.x, forward.x, 0,
-			right.y, up.y, forward.y, 0,
-			right.z, up.z, forward.z, 0,
+			right.x, right.y, right.z, 0,
+			up.x, up.y, up.z, 0,
+			forward.x, forward.y, forward.z, 0,
 			0, 0, 0, 1
 		);
 		glm::mat4 tCam = glm::mat4(
-			1, 0, 0, 0,
-			0, 1, 0, 0, 
-			0, 0, 1, 0,
-			-camPos.x, -camPos.y, -camPos.z, 1
+			1, 0, 0, -camPos.x,
+			0, 1, 0, -camPos.y,
+			0, 0, 1, -camPos.z,
+			0, 0, 0, 1
 		);
 
 		return rCam * tCam;
+		//return glm::lookAt(camPos, camPos + forward, glm::vec3(0, 1, 0));
 	};
 
 	glm::mat4 getProjectionMatrix()
 	{
 		if (orthographic)
-			return ortho(height, (float)(SCREEN_HEIGHT/SCREEN_WIDTH), .1f, 80.0f);
+			return ortho(height, (float)SCREEN_HEIGHT/(float)SCREEN_WIDTH, .01f, 100.0f);
 		else
-			return perpective(height, (float)(SCREEN_HEIGHT / SCREEN_WIDTH), .1f, 80.0f);
+			return perpective(fov, (float)SCREEN_HEIGHT / (float)SCREEN_WIDTH, .01f, 100.0f);
 	};
 
 	glm::mat4 ortho(float h, float aspectRatio, float near, float far)
 	{
-		float w = aspectRatio * h;
-		float r = w / 2, t = h / 2;
-		float l = -r, b = -t;
-
+		float r = h * aspectRatio;
+		float l = -r;
+		float t = h * 0.5f;
+		float b = -t;
+		
 		return glm::mat4(
-			2 / (r - l), 0, 0, 0,
-			0, 2 / (t - b), 0, 0,
-			0, 0, -2 / (far - near), 0,
-			-(r + l) / (r - l), -(t + b) / (t - b), -(far + near) / (far - near), 1
+			2 / (r - l), 0, 0, -(r + l) / (r - l),
+			0, 2 / (t - b), 0, -(t + b) / (t - b),
+			0, 0, -2 / (far - near), -(far + near) / (far - near),
+			0, 0, 0, 1
 		);
 
 	};
 	glm::mat4 perpective(float fov, float aspectRatio, float near, float far)
 	{
-		float c = tan(fov / 2);
+		float c = aspectRatio * tan(glm::radians(fov) / 2);
 			return glm::mat4(
-				1/aspectRatio*c, 0, 0, 0,   //column 0
+				1/(aspectRatio*c), 0, 0, 0,   //column 0
 				0, 1/c, 0, 0,   //column 1
 				0, 0, -((far+near)/(far-near)), -1,   //column 2
-				0, 0, -((2*far*near)/(far-near)), 1    //column 3
+				0, 0, -((2 * far * near) / (far - near)), 1    //column 3
 			);
 	};
 };
@@ -211,6 +213,11 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
+	trans.scale = glm::vec3(1, 1, 1);
+	trans.pos = glm::vec3(0, 0, 0);
+	cam.camPos = glm::vec3(0, 0, 5);
+	cam.target = glm::vec3(0, 0, 0);
+
 	while (!glfwWindowShouldClose(window)) {
 		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -225,6 +232,7 @@ int main() {
 
 		//Draw
 		shader.use();
+
 		/*for (size_t i = 0; i < 3; i++)
 		{
 			shader.setMat4("_Model", Transform.getModelMatrix());
@@ -239,7 +247,7 @@ int main() {
 		ImGui::Begin("Settings");
 		ImGui::SliderFloat("Radius", &radius, 0.0f, 10.0f);
 		ImGui::SliderFloat("Speed", &speed, 0.0f, 10.0f);
-		ImGui::SliderFloat("FOV", &fov, 0.0f, 10.0f);
+		ImGui::SliderFloat("FOV", &fov, 0.0f, 100);
 		ImGui::SliderFloat("Orthographic Height", &height, 0.0f, 10.0f);
 		ImGui::Checkbox("Orthographic", &orthographic);
 		ImGui::End();
