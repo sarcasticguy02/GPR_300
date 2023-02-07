@@ -47,7 +47,7 @@ bool orthographic = false;
 
 struct Transform
 {
-	glm::vec3 pos = glm::vec3(0, 0, 0), rot = glm::vec3(0, 0, 0), scale = glm::vec3(1, 1, 1);
+	glm::vec3 pos, rot, scale;
 
 	glm::mat4 size(glm::vec3 s)
 	{
@@ -68,7 +68,7 @@ struct Transform
 			0, 0, 0, 1
 		);
 		glm::mat4 rotateY(
-			cos(r.y), 0, sin(r.y), 0,
+			cos(r.y), 0, -sin(r.y), 0,
 			0, 1, 0, 0,
 			sin(r.y), 0, cos(r.y), 0,
 			0, 0, 0, 1
@@ -96,7 +96,7 @@ struct Transform
 
 	glm::mat4 getModelMatrix()
 	{
-		return  position(pos) * size(scale) * rotate(rot);
+		return  position(pos) * rotate(rot) * size(scale);
 	}
 };
 
@@ -151,6 +151,7 @@ struct Camera
 		);
 
 	};
+
 	glm::mat4 perpective(float fov, float aspectRatio, float near, float far)
 	{
 		float c = aspectRatio * tan(glm::radians(fov) / 2);
@@ -211,6 +212,7 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
+
 	cube1.scale = glm::vec3((rand()%2) + 1, (rand()%2) + 1, (rand()%2) + 1);
 	cube1.pos = glm::vec3(rand()%5, rand() % 5, rand() % 5);
 	cube1.rot = glm::vec3(rand() % 5, rand() % 5, rand() % 5);
@@ -254,9 +256,6 @@ int main() {
 		shader.setMat4("_View", cam.getViewMatrix());
 		shader.setMat4("_Projection", cam.getProjectionMatrix());
 		cubeMesh.draw();
-		/*cubeMesh2.draw();
-		cubeMesh3.draw();
-		cubeMesh4.draw();*/
 
 		//Camera Movement
 		cam.camPos.x = cos(time * speed) * radius;
