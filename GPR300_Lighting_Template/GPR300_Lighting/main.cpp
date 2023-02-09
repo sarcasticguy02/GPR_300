@@ -52,9 +52,17 @@ Camera camera((float)SCREEN_WIDTH / (float)SCREEN_HEIGHT);
 
 glm::vec3 bgColor = glm::vec3(0);
 glm::vec3 lightColor = glm::vec3(1.0f);
-glm::vec3 lightPosition = glm::vec3(0.0f, 3.0f, 0.0f);
 
 bool wireFrame = false;
+
+struct Light {
+	glm::vec3 pos;
+	glm::vec3 color;
+	float intensity;
+};
+
+Light light;
+#define MAX_LIGHTS 8
 
 int main() {
 	if (!glfwInit()) {
@@ -151,11 +159,23 @@ int main() {
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
 
+		//UPDATE
+		cubeTransform.rotation.x += deltaTime;
+
 		//Draw
 		litShader.use();
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
-		litShader.setVec3("_LightPos", lightTransform.position);
+		//litShader.setVec3("_LightPos", lightTransform.position);
+
+		//Set some light uniforms
+		for (int i = 0; i < MAX_LIGHTS; i++)
+		{
+			litShader.setVec3("_Lights[i].pos", lightTransform.position);
+			litShader.setVec3("_Lights[i].color", light.color);
+			litShader.setFloat("_Lights[i].intensity", light.intensity);
+		}
+
 		//Draw cube
 		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
 		cubeMesh.draw();
