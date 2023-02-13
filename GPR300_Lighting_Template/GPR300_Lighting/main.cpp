@@ -55,6 +55,8 @@ glm::vec3 lightColor = glm::vec3(1.0f);
 
 bool wireFrame = false;
 
+bool blinnphong = true;
+
 struct Light {
 	glm::vec3 pos;
 	glm::vec3 color;
@@ -160,7 +162,7 @@ int main() {
 		lastFrameTime = time;
 
 		//UPDATE
-		cubeTransform.rotation.x += deltaTime;
+		//cubeTransform.rotation.x += deltaTime;
 
 		//Draw
 		litShader.use();
@@ -173,6 +175,7 @@ int main() {
 		{
 			litShader.setVec3("_Lights[i].pos", lightTransform.position);
 			litShader.setVec3("_Lights[i].color", light.color);
+			//litShader.setVec3("_Lights[i].dir", something);
 			litShader.setFloat("_Lights[i].intensity", light.intensity);
 		}
 
@@ -205,6 +208,7 @@ int main() {
 
 		ImGui::ColorEdit3("Light Color", &lightColor.r);
 		ImGui::DragFloat3("Light Position", &lightTransform.position.x);
+		ImGui::Checkbox("Blinn-Phing", &blinnphong);
 		ImGui::End();
 
 		ImGui::Render();
