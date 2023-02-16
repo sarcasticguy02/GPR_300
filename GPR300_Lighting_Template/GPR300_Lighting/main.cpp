@@ -148,6 +148,14 @@ int main() {
 	lightTransform.scale = glm::vec3(0.5f);
 	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
+	//Material
+	/*litShader.setVec3("Material.Color", (255, 255, 255));
+	litShader.setFloat();
+	float AmbientK;
+	float DiffuseK;
+	float SpecularK;
+	float Shininess;*/
+
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
 		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
@@ -163,6 +171,7 @@ int main() {
 
 		//UPDATE
 		//cubeTransform.rotation.x += deltaTime;
+		litShader.setVec3("camPos", camera.getPosition());
 
 		//Draw
 		litShader.use();
