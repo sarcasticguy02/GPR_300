@@ -57,13 +57,30 @@ bool wireFrame = false;
 
 bool blinnphong = true;
 
+float ambient = .3f, diffuse = .7f, spec = .5f, shininess = .8f;
+
 struct Light {
 	glm::vec3 pos;
 	glm::vec3 color;
 	float intensity;
 };
 
+struct DLight {
+	glm::vec3 dir;
+	glm::vec3 color;
+	float intensity;
+};
+
+struct Material {
+	glm::vec3 Color;
+	float AmbientK;
+	float DiffuseK;
+	float SpecularK;
+	float Shininess;
+};
+
 Light light;
+DLight Dlight;
 #define MAX_LIGHTS 8
 
 int main() {
@@ -148,13 +165,6 @@ int main() {
 	lightTransform.scale = glm::vec3(0.5f);
 	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
-	//Material
-	/*litShader.setVec3("Material.Color", (255, 255, 255));
-	litShader.setFloat();
-	float AmbientK;
-	float DiffuseK;
-	float SpecularK;
-	float Shininess;*/
 
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
@@ -173,6 +183,13 @@ int main() {
 		//cubeTransform.rotation.x += deltaTime;
 		litShader.setVec3("camPos", camera.getPosition());
 
+		//Material
+		litShader.setVec3("_Material.Color", glm::vec3(255, 255, 255));
+		litShader.setFloat("_Material.AmbientK", ambient);
+		litShader.setFloat("_Material.DiffuseK", diffuse);
+		litShader.setFloat("_Material.SpecularK", spec);
+		litShader.setFloat("_Material.Shininess", shininess);
+
 		//Draw
 		litShader.use();
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
@@ -180,13 +197,17 @@ int main() {
 		//litShader.setVec3("_LightPos", lightTransform.position);
 
 		//Set some light uniforms
-		for (int i = 0; i < MAX_LIGHTS; i++)
-		{
-			litShader.setVec3("_Lights[i].pos", lightTransform.position);
-			litShader.setVec3("_Lights[i].color", light.color);
-			//litShader.setVec3("_Lights[i].dir", something);
-			litShader.setFloat("_Lights[i].intensity", light.intensity);
-		}
+		//for (int i = 0; i < MAX_LIGHTS; i++)
+		//{
+		//	litShader.setVec3("_Lights[i].pos", lightTransform.position);
+		//	litShader.setVec3("_Lights[i].color", light.color);
+		//	//litShader.setVec3("_Lights[i].dir", something);
+		//	litShader.setFloat("_Lights[i].intensity", light.intensity);
+		//}
+
+		litShader.setVec3("_DLights.color", lightColor);
+		litShader.setVec3("_DLights.dir", Dlight.dir);
+		litShader.setFloat("_DLights.intensity", Dlight.intensity);
 
 		//Draw cube
 		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
@@ -217,7 +238,13 @@ int main() {
 
 		ImGui::ColorEdit3("Light Color", &lightColor.r);
 		ImGui::DragFloat3("Light Position", &lightTransform.position.x);
-		ImGui::Checkbox("Blinn-Phing", &blinnphong);
+		ImGui::SliderFloat("Light Intentsity", &Dlight.intensity, 0, 1);
+		ImGui::SliderFloat("Ambient", &ambient, 0, 1);
+		ImGui::SliderFloat("Diffuse", &diffuse, 0, 1);
+		ImGui::SliderFloat("Specular", &spec, 0, 1);
+		ImGui::SliderFloat("Shininess", &shininess, 1, 512);
+		ImGui::DragFloat3("Light Direction", &Dlight.dir.x);
+		ImGui::Checkbox("Blinn-Phong", &blinnphong);
 		ImGui::End();
 
 		ImGui::Render();
