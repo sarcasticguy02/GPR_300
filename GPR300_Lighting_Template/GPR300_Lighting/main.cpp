@@ -59,7 +59,6 @@ bool blinnphong = true;
 
 float ambient = .3f, diffuse = .7f, spec = .5f, shininess = .8f;
 int numLights;
-float radius, intensity;
 
 struct Material {
 	glm::vec3 Color;
@@ -82,19 +81,28 @@ struct DLight {
 };
 
 struct PLight {
-	glm::vec3 Color;
+	glm::vec3 color;
 	glm::vec3 pos;
 	float intensity;
 	float radius;
-	float constant;
-	float lin;
-	float exp;
 };
 
+struct SLight {
+	glm::vec3 color;
+	glm::vec3 pos;
+	glm::vec3 dir = glm::vec3(1);
+	float intensity;
+	float min;
+	float max;
+};
+
+
+#define MAX_LIGHTS 2
 Light light;
 DLight Dlight;
-PLight Plight;
-#define MAX_LIGHTS 4
+PLight Plight[MAX_LIGHTS];
+SLight Slight;
+
 
 int main() {
 	if (!glfwInit()) {
@@ -222,10 +230,23 @@ int main() {
 		litShader.setVec3("_DLights.dir", Dlight.dir);
 		litShader.setFloat("_DLights.intensity", Dlight.intensity);
 
-		/*litShader.setVec3("_PLights.color", Plight.Color);
-		litShader.setVec3("_PLights.pos", Plight.pos);
-		litShader.setFloat("_PLights.intensity", intensity);
-		litShader.setFloat("_PLights.radius", radius);*/
+		for (int i = 0; i < MAX_LIGHTS; i++)
+		{
+			litShader.setVec3("_PLights[" + std::to_string(i) + "].color", Plight[i].color);
+			litShader.setVec3("_PLights[" + std::to_string(i) + "].pos", glm::vec3(2 + i, 2 + i, 2 + i));
+			litShader.setFloat("_PLights[" + std::to_string(i) + "].intensity", Plight[i].intensity);
+			litShader.setFloat("_PLights[" + std::to_string(i) + "].radius", Plight[i].radius);
+		}
+
+		litShader.setVec3("_SLights.color", Slight.color);
+		litShader.setVec3("_SLights.pos", lightTransform.position);
+		litShader.setVec3("_SLights.dir", Slight.dir);
+		litShader.setFloat("_SLights.intensity", Slight.intensity);
+		litShader.setFloat("_SLights.min", Slight.min);
+		litShader.setFloat("_SLights.max", Slight.max);
+
+		float min;
+		float max;
 
 		//Draw cube
 		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
@@ -263,18 +284,23 @@ int main() {
 		ImGui::ColorEdit3("Light Color", &lightColor.r);
 		ImGui::SliderFloat("Light Intentsity", &Dlight.intensity, 0, 1);
 		ImGui::DragFloat3("Light Direction", &Dlight.dir.x);
-		//ImGui::Checkbox("Blinn-Phong", &blinnphong);
 		ImGui::End();
 
-		//ImGui::Begin("Point Light"); 
-		//ImGui::DragInt("Number of Lights", &numLights);
-		////ImGui::DragFloat3("Light Position", &Plight.pos.x);
-		//ImGui::SliderFloat("Radius", &radius, 0, 1);
-		//ImGui::SliderFloat("Light Intentsity", &intensity, 0, 1);
-		//ImGui::SliderFloat("Attinuation Constant", &Plight.constant, 0, 1);
-		//ImGui::SliderFloat("Attinuation Linear", &Plight.lin, 0, 1);
-		//ImGui::SliderFloat("Attinuation Exponential", &Plight.exp, 0, 1);
-		//ImGui::End();
+		ImGui::Begin("Point Light"); 
+		ImGui::ColorEdit3("Light Color (1)", &Plight[0].color.r);
+		ImGui::SliderFloat("Radius (1)", &Plight[0].radius, 0, 10);
+		ImGui::SliderFloat("Light Intentsity (1)", &Plight[0].intensity, 0, 1);
+		ImGui::ColorEdit3("Light Color (2)", &Plight[1].color.r);
+		ImGui::SliderFloat("Radius (2)", &Plight[1].radius, 0, 10);
+		ImGui::SliderFloat("Light Intentsity (2)", &Plight[1].intensity, 0, 1);
+		ImGui::End();
+
+		ImGui::Begin("Spot Light");
+		ImGui::ColorEdit3("Light Color", &Slight.color.r);
+		ImGui::SliderFloat("Light Intentsity", &Slight.intensity, 0, 1);
+		ImGui::SliderFloat("Min Angle", &Slight.min, 0, 360);
+		ImGui::SliderFloat("Max Angle", &Slight.max, 0, 360);
+		ImGui::End();
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

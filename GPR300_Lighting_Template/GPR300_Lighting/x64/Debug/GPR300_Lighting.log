@@ -1,2 +1,5 @@
 ﻿  main.cpp
-  GPR300_Lighting.vcxproj -> C:\Users\andrew.feddersen\Desktop\Program_Animation\GPR_300\GPR300_Lighting_Template\x64\Debug\GPR300_Lighting.exe
+C:\Users\andrew.feddersen\Desktop\GPR_300\GPR300_Lighting_Template\GPR300_Lighting\main.cpp(300,68): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\andrew.feddersen\Desktop\GPR_300\GPR300_Lighting_Template\GPR300_Lighting\main.cpp(249,9): warning C4101: 'max': unreferenced local variable
+C:\Users\andrew.feddersen\Desktop\GPR_300\GPR300_Lighting_Template\GPR300_Lighting\main.cpp(248,9): warning C4101: 'min': unreferenced local variable
+  GPR300_Lighting.vcxproj -> C:\Users\andrew.feddersen\Desktop\GPR_300\GPR300_Lighting_Template\x64\Debug\GPR300_Lighting.exe
