@@ -245,9 +245,6 @@ int main() {
 		litShader.setFloat("_SLights.min", Slight.min);
 		litShader.setFloat("_SLights.max", Slight.max);
 
-		float min;
-		float max;
-
 		//Draw cube
 		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
 		cubeMesh.draw();

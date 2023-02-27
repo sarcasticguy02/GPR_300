@@ -98,23 +98,30 @@ vec3 calcPoint(PLight light, Material mat)
 
 vec3 calcSpot(SLight light, Material mat)
 {
+    float theta = dot(normalize(v_out.WorldPos - light.pos), normalize(-light.dir));
+    if(theta < light.maxAngle)
+    {
+        return vec3(0);
+    }
+        
+    float attinuation = ((cos(theta) - light.maxAngle) / (light.minAngle - light.maxAngle));
+    float intensity = light.intensity * ((theta - light.maxAngle) / (light.minAngle - light.maxAngle));
+
     //Ambient
-    float intensity = light.intensity;
 	vec3 rgb = light.color;	
     vec3 ambient = rgb * mat.AmbientK * intensity;
 
     //Diffuse
     vec3 normal = normalize(v_out.WorldNormal);
-    vec3 diffuse = mat.DiffuseK * max(dot(light.pos, normal), 0) * rgb * intensity;
+    vec3 diffuse = mat.DiffuseK * max(dot(normalize(light.dir), normal), 0) * rgb * intensity;
 
     //Specular (only thing that changes from phong to blinn-phong)
     vec3 viewer = normalize(camPos - v_out.WorldPos);
-    vec3 H = normalize(viewer + light.dir);
+    vec3 H = normalize(viewer + normalize(light.dir));
     vec3 specular = mat.SpecularK * pow(max(dot(normal, H), 0), mat.Shininess) * rgb * intensity;
 
     vec3 color = ambient + diffuse + specular;
-    float angle = dot(normalize(v_out.WorldPos - light.pos), normalize(-light.dir));
-    float attinuation = ((cos(angle) - light.maxAngle) / (light.minAngle - light.maxAngle));
+    
     return color * attinuation;
 }
 
