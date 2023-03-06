@@ -23,6 +23,12 @@ namespace ew {
 		//Texture coordinate (uv)
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, uv)));
 		glEnableVertexAttribArray(2);
+		//Tangent
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, tangent)));
+		glEnableVertexAttribArray(3);
+		//Bitangent
+		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, bitangent)));
+		glEnableVertexAttribArray(4);
 
 		mNumIndices = (GLsizei)meshData->indices.size();
 		mNumVertices = (GLsizei)meshData->vertices.size();
