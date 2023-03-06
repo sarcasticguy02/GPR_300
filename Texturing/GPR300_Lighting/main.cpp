@@ -56,8 +56,8 @@ glm::vec3 lightPosition = glm::vec3(0.0f, 3.0f, 0.0f);
 
 bool wireFrame = false;
 
-const char* woodFile = "WoodFloor051_8K_Color.png";
-const char* steelFile = "CorrugatedSteel007C_8K_Color.png";
+const char* woodFile = "wood.png";
+const char* steelFile = "steel.png";
 
 GLuint createTexture(const char* filePath)
 {
