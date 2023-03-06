@@ -56,6 +56,53 @@ glm::vec3 lightPosition = glm::vec3(0.0f, 3.0f, 0.0f);
 
 bool wireFrame = false;
 
+const char* woodFile = "WoodFloor051_8K_Color.png";
+const char* steelFile = "CorrugatedSteel007C_8K_Color.png";
+
+GLuint createTexture(const char* filePath)
+{
+	//Generate a texture name
+	GLuint texture;
+	glGenTextures(1, &texture);
+	//Bind out name to GL_TEXTURE_2D to make it a 2D texture
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	int width, height, numComponents;
+	stbi_set_flip_vertically_on_load(true);
+	unsigned char* textureData = stbi_load(filePath, &width, &height, &numComponents, 0);
+
+	switch (numComponents)
+	{
+	case 1:
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_R, width, height, 0, GL_R, GL_UNSIGNED_BYTE, textureData);
+		break;
+	case 2:
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, width, height, 0, GL_RG, GL_UNSIGNED_BYTE, textureData);
+		break;
+	case 3:
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
+		break;
+	case 4:
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData);
+		break;
+	default:
+		break;
+	}
+
+	//Wrap horizontally
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	//Wrap vertically
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	//Magnifying
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//Minifying
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	return texture;
+}
+
 int main() {
 	if (!glfwInit()) {
 		printf("glfw failed to init");
@@ -94,19 +141,22 @@ int main() {
 	//Used to draw light sphere
 	Shader unlitShader("shaders/defaultLit.vert", "shaders/unlit.frag");
 
+	GLuint wood = createTexture(woodFile);
+	GLuint steel = createTexture(steelFile);
+
 	ew::MeshData cubeMeshData;
 	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData);
 	ew::MeshData sphereMeshData;
 	ew::createSphere(0.5f, 64, sphereMeshData);
-	//ew::MeshData cylinderMeshData;
-	//ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData);
+	ew::MeshData cylinderMeshData;
+	ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData);
 	ew::MeshData planeMeshData;
 	ew::createPlane(1.0f, 1.0f, planeMeshData);
 
 	ew::Mesh cubeMesh(&cubeMeshData);
 	ew::Mesh sphereMesh(&sphereMeshData);
 	ew::Mesh planeMesh(&planeMeshData);
-	//ew::Mesh cylinderMesh(&cylinderMeshData);
+	ew::Mesh cylinderMesh(&cylinderMeshData);
 
 	ew::MeshData quadMeshData;
 	ew::createQuad(1.0f, 1.0, quadMeshData);
@@ -128,7 +178,7 @@ int main() {
 	ew::Transform cubeTransform;
 	ew::Transform sphereTransform;
 	ew::Transform planeTransform;
-	//ew::Transform cylinderTransform;
+	ew::Transform cylinderTransform;
 	//ew::Transform lightTransform;
 
 	cubeTransform.position = glm::vec3(-2.0f, 0.0f, 0.0f);
@@ -137,12 +187,12 @@ int main() {
 	planeTransform.position = glm::vec3(0.0f, -1.0f, 0.0f);
 	planeTransform.scale = glm::vec3(10.0f);
 
-	//cylinderTransform.position = glm::vec3(2.0f, 0.0f, 0.0f);
+	cylinderTransform.position = glm::vec3(2.0f, 0.0f, 0.0f);
 
 	//lightTransform.scale = glm::vec3(0.5f);
 	//lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
-	ew::Transform quadTransform;
+	//ew::Transform quadTransform;
 
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
@@ -162,6 +212,19 @@ int main() {
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
 		//litShader.setVec3("_LightPos", lightTransform.position);
+
+		glActiveTexture(GL_TEXTURE0);
+		//Bind out name to GL_TEXTURE_2D to make it a 2D texture
+		glBindTexture(GL_TEXTURE_2D, wood);
+		litShader.setInt("_WoodTexture", 0);
+
+		glActiveTexture(GL_TEXTURE1);
+		//Bind out name to GL_TEXTURE_2D to make it a 2D texture
+		glBindTexture(GL_TEXTURE_2D, steel);
+		litShader.setInt("_SteelTexture", 1);
+
+		litShader.setFloat("_Time", time);
+
 		//Draw cube
 		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
 		cubeMesh.draw();
@@ -171,15 +234,15 @@ int main() {
 		sphereMesh.draw();
 
 		////Draw cylinder
-		//litShader.setMat4("_Model", cylinderTransform.getModelMatrix());
-		//cylinderMesh.draw();
+		litShader.setMat4("_Model", cylinderTransform.getModelMatrix());
+		cylinderMesh.draw();
 
 		//Draw plane
 		litShader.setMat4("_Model", planeTransform.getModelMatrix());
 		planeMesh.draw();
 
-		litShader.setMat4("_Model", quadTransform.getModelMatrix());
-		quadMesh.draw();
+		//litShader.setMat4("_Model", quadTransform.getModelMatrix());
+		//quadMesh.draw();
 
 		//Draw light as a small sphere using unlit shader, ironically.
 		/*unlitShader.use();
