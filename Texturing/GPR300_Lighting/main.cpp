@@ -56,8 +56,8 @@ glm::vec3 lightPosition = glm::vec3(0.0f, 3.0f, 0.0f);
 
 bool wireFrame = false;
 
-const char* woodFile = "wood.png";
-const char* steelFile = "steel.png";
+const char* woodFile = "woodNormal.png";
+const char* steelFile = "steelNormal.png";
 
 GLuint createTexture(const char* filePath)
 {
@@ -103,6 +103,24 @@ GLuint createTexture(const char* filePath)
 	return texture;
 }
 
+struct Material {
+	glm::vec3 Color;
+	float AmbientK;
+	float DiffuseK;
+	float SpecularK;
+	float Shininess;
+};
+
+struct PLight {
+	glm::vec3 color;
+	glm::vec3 pos;
+	float intensity;
+	float radius;
+};
+
+PLight Plight;
+Material mat;
+
 int main() {
 	if (!glfwInit()) {
 		printf("glfw failed to init");
@@ -144,23 +162,23 @@ int main() {
 	GLuint wood = createTexture(woodFile);
 	GLuint steel = createTexture(steelFile);
 
-	ew::MeshData cubeMeshData;
+	/*ew::MeshData cubeMeshData;
 	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData);
 	ew::MeshData sphereMeshData;
 	ew::createSphere(0.5f, 64, sphereMeshData);
 	ew::MeshData cylinderMeshData;
-	ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData);
+	ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData);*/
 	ew::MeshData planeMeshData;
 	ew::createPlane(1.0f, 1.0f, planeMeshData);
 
-	ew::Mesh cubeMesh(&cubeMeshData);
-	ew::Mesh sphereMesh(&sphereMeshData);
+	//ew::Mesh cubeMesh(&cubeMeshData);
+	//ew::Mesh sphereMesh(&sphereMeshData);
 	ew::Mesh planeMesh(&planeMeshData);
-	ew::Mesh cylinderMesh(&cylinderMeshData);
+	//ew::Mesh cylinderMesh(&cylinderMeshData);
 
-	ew::MeshData quadMeshData;
+	/*ew::MeshData quadMeshData;
 	ew::createQuad(1.0f, 1.0, quadMeshData);
-	ew::Mesh quadMesh(&quadMeshData);
+	ew::Mesh quadMesh(&quadMeshData);*/
 
 	//Enable back face culling
 	glEnable(GL_CULL_FACE);
@@ -175,22 +193,22 @@ int main() {
 	glDepthFunc(GL_LESS);
 
 	//Initialize shape transforms
-	ew::Transform cubeTransform;
-	ew::Transform sphereTransform;
+	//ew::Transform cubeTransform;
+	//ew::Transform sphereTransform;
 	ew::Transform planeTransform;
-	ew::Transform cylinderTransform;
-	//ew::Transform lightTransform;
+	//ew::Transform cylinderTransform;
+	ew::Transform lightTransform;
 
-	cubeTransform.position = glm::vec3(-2.0f, 0.0f, 0.0f);
-	sphereTransform.position = glm::vec3(0.0f, 0.0f, 0.0f);
+	//cubeTransform.position = glm::vec3(-2.0f, 0.0f, 0.0f);
+	//sphereTransform.position = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	planeTransform.position = glm::vec3(0.0f, -1.0f, 0.0f);
 	planeTransform.scale = glm::vec3(10.0f);
 
-	cylinderTransform.position = glm::vec3(2.0f, 0.0f, 0.0f);
+	//cylinderTransform.position = glm::vec3(2.0f, 0.0f, 0.0f);
 
-	//lightTransform.scale = glm::vec3(0.5f);
-	//lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
+	lightTransform.scale = glm::vec3(0.5f);
+	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
 	//ew::Transform quadTransform;
 
@@ -207,35 +225,51 @@ int main() {
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
 
+		//UPDATE
+		//cubeTransform.rotation.x += deltaTime;
+		litShader.setVec3("camPos", camera.getPosition());
+
+		//Material
+		litShader.setVec3("_Material.Color", glm::vec3(255, 255, 255));
+		litShader.setFloat("_Material.AmbientK", mat.AmbientK);
+		litShader.setFloat("_Material.DiffuseK", mat.DiffuseK);
+		litShader.setFloat("_Material.SpecularK", mat.SpecularK);
+		litShader.setFloat("_Material.Shininess", mat.Shininess);
+
 		//Draw
 		litShader.use();
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
 		//litShader.setVec3("_LightPos", lightTransform.position);
 
+		litShader.setVec3("_PLights.color", Plight.color);
+		litShader.setVec3("_PLights.pos", glm::vec3(0, 0, 0));
+		litShader.setFloat("_PLights.intensity", Plight.intensity);
+		litShader.setFloat("_PLights.radius", Plight.radius);
+
 		glActiveTexture(GL_TEXTURE0);
 		//Bind out name to GL_TEXTURE_2D to make it a 2D texture
 		glBindTexture(GL_TEXTURE_2D, wood);
-		litShader.setInt("_WoodTexture", 0);
+		litShader.setInt("_NormalMap", 0);
 
-		glActiveTexture(GL_TEXTURE1);
-		//Bind out name to GL_TEXTURE_2D to make it a 2D texture
-		glBindTexture(GL_TEXTURE_2D, steel);
-		litShader.setInt("_SteelTexture", 1);
+		//glActiveTexture(GL_TEXTURE1);
+		////Bind out name to GL_TEXTURE_2D to make it a 2D texture
+		//glBindTexture(GL_TEXTURE_2D, steel);
+		//litShader.setInt("_SteelTexture", 1);
 
 		litShader.setFloat("_Time", time);
 
-		//Draw cube
-		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
-		cubeMesh.draw();
+		////Draw cube
+		//litShader.setMat4("_Model", cubeTransform.getModelMatrix());
+		//cubeMesh.draw();
 
-		//Draw sphere
-		litShader.setMat4("_Model", sphereTransform.getModelMatrix());
-		sphereMesh.draw();
+		////Draw sphere
+		//litShader.setMat4("_Model", sphereTransform.getModelMatrix());
+		//sphereMesh.draw();
 
-		////Draw cylinder
-		litShader.setMat4("_Model", cylinderTransform.getModelMatrix());
-		cylinderMesh.draw();
+		//////Draw cylinder
+		//litShader.setMat4("_Model", cylinderTransform.getModelMatrix());
+		//cylinderMesh.draw();
 
 		//Draw plane
 		litShader.setMat4("_Model", planeTransform.getModelMatrix());
@@ -245,19 +279,27 @@ int main() {
 		//quadMesh.draw();
 
 		//Draw light as a small sphere using unlit shader, ironically.
-		/*unlitShader.use();
+		unlitShader.use();
 		unlitShader.setMat4("_Projection", camera.getProjectionMatrix());
 		unlitShader.setMat4("_View", camera.getViewMatrix());
 		unlitShader.setMat4("_Model", lightTransform.getModelMatrix());
 		unlitShader.setVec3("_Color", lightColor);
-		sphereMesh.draw();*/
+		//sphereMesh.draw();
 
 		//Draw UI
-		/*ImGui::Begin("Settings");
+		ImGui::Begin("Material");
+		ImGui::SliderFloat("Ambient", &mat.AmbientK, 0, 1);
+		ImGui::SliderFloat("Diffuse", &mat.DiffuseK, 0, 1);
+		ImGui::SliderFloat("Specular", &mat.SpecularK, 0, 1);
+		ImGui::SliderFloat("Shininess", &mat.Shininess, 1, 512);
+		ImGui::End();
 
-		ImGui::ColorEdit3("Light Color", &lightColor.r);
-		ImGui::DragFloat3("Light Position", &lightTransform.position.x);
-		ImGui::End();*/
+		ImGui::Begin("Point Light");
+		ImGui::ColorEdit3("Light Color", &Plight.color.r);
+		ImGui::SliderFloat("Radius", &Plight.radius, 0, 10);
+		ImGui::SliderFloat("Light Intentsity", &Plight.intensity, 0, 1);
+		//ImGui::SliderInt3("Light Position", &Plight.pos, -5, 5);
+		ImGui::End();
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

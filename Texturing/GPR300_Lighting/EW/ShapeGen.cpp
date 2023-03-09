@@ -11,10 +11,10 @@ namespace ew {
 		float halfHeight = height / 2.0f;
 		Vertex vertices[4] = {
 			//Front face
-			{glm::vec3(-halfWidth, 0, -halfHeight), glm::vec3(0,1,0), glm::vec2(0, 0)}, //BL
-			{glm::vec3(+halfWidth, 0, -halfHeight), glm::vec3(0,1,0), glm::vec2(1, 0)}, //BR
-			{glm::vec3(+halfWidth, 0, +halfHeight), glm::vec3(0,1,0), glm::vec2(1, 1)}, //TR
-			{glm::vec3(-halfWidth, 0, +halfHeight), glm::vec3(0,1,0), glm::vec2(0, 1)} //TL
+			{glm::vec3(-halfWidth, 0, -halfHeight), glm::vec3(0,1,0), glm::vec2(0, 0), glm::vec3(-1, -1, 0)}, //BL
+			{glm::vec3(+halfWidth, 0, -halfHeight), glm::vec3(0,1,0), glm::vec2(1, 0), glm::vec3(1, -1, 0)}, //BR
+			{glm::vec3(+halfWidth, 0, +halfHeight), glm::vec3(0,1,0), glm::vec2(1, 1), glm::vec3(1, 1, 0)}, //TR
+			{glm::vec3(-halfWidth, 0, +halfHeight), glm::vec3(0,1,0), glm::vec2(0, 1), glm::vec3(-1, 1, 0)} //TL
 		};
 		meshData.vertices.assign(&vertices[0], &vertices[4]);
 		unsigned int indices[6] = {
@@ -24,7 +24,7 @@ namespace ew {
 		};
 		meshData.indices.assign(&indices[0], &indices[6]);
 	};
-
+/*
 	void createQuad(float width, float height, MeshData& meshData) {
 		meshData.vertices.clear();
 		meshData.indices.clear();
@@ -286,5 +286,5 @@ namespace ew {
 			meshData.indices.push_back(start + 1);
 			meshData.indices.push_back(start + numSegments + 2);
 		}
-	}
+	}*/
 }

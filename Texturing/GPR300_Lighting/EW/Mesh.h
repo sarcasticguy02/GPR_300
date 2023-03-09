@@ -11,9 +11,8 @@ namespace ew {
 		glm::vec3 normal;
 		glm::vec2 uv;
 		glm::vec3 tangent;
-		glm::vec3 bitangent;
-		Vertex(glm::vec3 position, glm::vec3 normal, glm::vec2 uv, glm::vec3 tangent, glm::vec3 bitangent)
-			: position(position), normal(normal), uv(uv), tangent(tangent), bitangent(bitangent) {};
+		Vertex(glm::vec3 position, glm::vec3 normal, glm::vec2 uv, glm::vec3 tangent)
+			: position(position), normal(normal), uv(uv), tangent(tangent) {};
 	};
 
 	/// <summary>
