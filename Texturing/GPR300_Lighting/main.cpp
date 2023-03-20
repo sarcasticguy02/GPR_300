@@ -120,6 +120,8 @@ struct PLight {
 
 PLight Plight;
 Material mat;
+float normalIntensity;
+bool animation;
 
 int main() {
 	if (!glfwInit()) {
@@ -226,8 +228,12 @@ int main() {
 		lastFrameTime = time;
 
 		//UPDATE
-		cubeTransform.rotation.x += deltaTime;
-		cubeTransform.rotation.y -= deltaTime;
+		if (!animation)
+		{
+			cubeTransform.rotation.x += deltaTime;
+			cubeTransform.rotation.y -= deltaTime;
+		}
+		
 		litShader.setVec3("camPos", camera.getPosition());
 
 		//Material
@@ -259,6 +265,7 @@ int main() {
 		litShader.setInt("_WoodTexture", 1);
 
 		litShader.setFloat("_Time", time);
+		litShader.setFloat("_NormalIntensity", normalIntensity);
 
 		////Draw cube
 		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
@@ -300,6 +307,11 @@ int main() {
 		ImGui::SliderFloat("Radius", &Plight.radius, 0, 10);
 		ImGui::SliderFloat("Light Intentsity", &Plight.intensity, 0, 1);
 		ImGui::SliderFloat3("Light Position", &Plight.pos.x, -5, 5);
+		ImGui::End();
+
+		ImGui::Begin("Animations");
+		ImGui::SliderFloat("Normal Intensity", &normalIntensity, 0, 1);
+		ImGui::Checkbox("Pause Cube", &animation);
 		ImGui::End();
 
 		ImGui::Render();

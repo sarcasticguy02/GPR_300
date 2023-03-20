@@ -10,6 +10,7 @@ uniform sampler2D _SteelTexture;
 uniform float _Time;
 
 uniform sampler2D _NormalMap;
+uniform float _NormalIntensity;
 
 in struct Vertex{
     vec3 WorldNormal;
@@ -62,7 +63,7 @@ vec3 calcPoint(PLight light, Material mat)
 
 void main(){         
     vec3 normal = texture(_NormalMap, UV).rgb;
-    normal = normalize(normal * 2.0 - 1.0);
+    normal = normalize(normal * 2.0 - 1.0) * vec3(_NormalIntensity, _NormalIntensity, 1);
     vec3 totalLight = calcPoint(_PLights, _Material);
     FragColor = vec4(totalLight * _Material.Color, 1) * texture(_WoodTexture, UV);
     //FragColor = vec4(nWorld, 1.0f) * mix(texture(_SteelTexture, (UV * cos(_Time))), texture(_WoodTexture, UV), cos(_Time));
