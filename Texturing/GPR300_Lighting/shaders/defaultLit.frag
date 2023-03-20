@@ -42,7 +42,7 @@ vec3 calcPoint(PLight light, Material mat)
     dir = normalize(dir);
 
     //Ambient
-    float intensity = light.intensity;
+    float intensity = light.intensity / 100;
 	vec3 rgb = light.color;	
     vec3 ambient = rgb * mat.AmbientK * intensity;
 
@@ -52,7 +52,7 @@ vec3 calcPoint(PLight light, Material mat)
 
     //Specular (only thing that changes from phong to blinn-phong)
     vec3 viewer = normalize(camPos - v_out.WorldPos);
-    vec3 H = normalize(viewer + dir);
+    vec3 H = normalize(viewer + normalize(dir));
     vec3 specular = mat.SpecularK * pow(max(dot(normal, H), 0), mat.Shininess) * rgb * intensity;
 
     vec3 color = ambient + diffuse + specular;
@@ -63,8 +63,7 @@ vec3 calcPoint(PLight light, Material mat)
 void main(){         
     vec3 normal = texture(_NormalMap, UV).rgb;
     normal = normalize(normal * 2.0 - 1.0);
-    vec3 nWorld = normalize(TBN * normal);
     vec3 totalLight = calcPoint(_PLights, _Material);
-    FragColor = vec4(totalLight, 1);
+    FragColor = vec4(totalLight * _Material.Color, 1) * texture(_WoodTexture, UV);
     //FragColor = vec4(nWorld, 1.0f) * mix(texture(_SteelTexture, (UV * cos(_Time))), texture(_WoodTexture, UV), cos(_Time));
 }

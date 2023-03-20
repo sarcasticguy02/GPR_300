@@ -56,8 +56,8 @@ glm::vec3 lightPosition = glm::vec3(0.0f, 3.0f, 0.0f);
 
 bool wireFrame = false;
 
-const char* woodFile = "woodNormal.png";
-const char* steelFile = "steelNormal.png";
+const char* woodFile = "wood.png";
+const char* normalWood = "woodNormal.png";
 
 GLuint createTexture(const char* filePath)
 {
@@ -104,6 +104,7 @@ GLuint createTexture(const char* filePath)
 }
 
 struct Material {
+	glm::vec3 Color = glm::vec3(1);
 	float AmbientK = 1;
 	float DiffuseK = 1;
 	float SpecularK = 1;
@@ -159,25 +160,25 @@ int main() {
 	Shader unlitShader("shaders/defaultLit.vert", "shaders/unlit.frag");
 
 	GLuint wood = createTexture(woodFile);
-	GLuint steel = createTexture(steelFile);
+	GLuint normalWoodFile = createTexture(normalWood);
 
 	ew::MeshData cubeMeshData;
 	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData);
-	/*ew::MeshData sphereMeshData;
+	ew::MeshData sphereMeshData;
 	ew::createSphere(0.5f, 64, sphereMeshData);
 	ew::MeshData cylinderMeshData;
-	ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData);*/
+	ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData);
 	ew::MeshData planeMeshData;
 	ew::createPlane(1.0f, 1.0f, planeMeshData);
 
 	ew::Mesh cubeMesh(&cubeMeshData);
-	//ew::Mesh sphereMesh(&sphereMeshData);
+	ew::Mesh sphereMesh(&sphereMeshData);
 	ew::Mesh planeMesh(&planeMeshData);
-	//ew::Mesh cylinderMesh(&cylinderMeshData);
+	ew::Mesh cylinderMesh(&cylinderMeshData);
 
-	ew::MeshData quadMeshData;
+	/*ew::MeshData quadMeshData;
 	ew::createQuad(1.0f, 1.0, quadMeshData);
-	ew::Mesh quadMesh(&quadMeshData);
+	ew::Mesh quadMesh(&quadMeshData);*/
 
 	//Enable back face culling
 	glEnable(GL_CULL_FACE);
@@ -193,25 +194,25 @@ int main() {
 
 	//Initialize shape transforms
 	ew::Transform cubeTransform;
-	//ew::Transform sphereTransform;
+	ew::Transform sphereTransform;
 	ew::Transform planeTransform;
-	//ew::Transform cylinderTransform;
+	ew::Transform cylinderTransform;
 	ew::Transform lightTransform;
 
 	cubeTransform.position = glm::vec3(-2.0f, 0.0f, 0.0f);
-	//sphereTransform.position = glm::vec3(0.0f, 0.0f, 0.0f);
+	sphereTransform.position = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	planeTransform.position = glm::vec3(0.0f, -1.0f, 0.0f);
 	planeTransform.scale = glm::vec3(10.0f);
 
-	//cylinderTransform.position = glm::vec3(2.0f, 0.0f, 0.0f);
+	cylinderTransform.position = glm::vec3(2.0f, 0.0f, 0.0f);
 
 	lightTransform.scale = glm::vec3(0.5f);
-	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
-	ew::Transform quadTransform;
+	//ew::Transform quadTransform;
 
 	while (!glfwWindowShouldClose(window)) {
+		lightTransform.position = Plight.pos;
 		processInput(window);
 		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -225,7 +226,8 @@ int main() {
 		lastFrameTime = time;
 
 		//UPDATE
-		//cubeTransform.rotation.x += deltaTime;
+		cubeTransform.rotation.x += deltaTime;
+		cubeTransform.rotation.y -= deltaTime;
 		litShader.setVec3("camPos", camera.getPosition());
 
 		//Material
@@ -242,19 +244,19 @@ int main() {
 		//litShader.setVec3("_LightPos", lightTransform.position);
 
 		litShader.setVec3("_PLights.color", Plight.color);
-		litShader.setVec3("_PLights.pos", glm::vec3(0, 0, 0));
+		litShader.setVec3("_PLights.pos", Plight.pos);
 		litShader.setFloat("_PLights.intensity", Plight.intensity);
 		litShader.setFloat("_PLights.radius", Plight.radius);
 
 		glActiveTexture(GL_TEXTURE0);
 		//Bind out name to GL_TEXTURE_2D to make it a 2D texture
-		glBindTexture(GL_TEXTURE_2D, wood);
+		glBindTexture(GL_TEXTURE_2D, normalWoodFile);
 		litShader.setInt("_NormalMap", 0);
 
-		//glActiveTexture(GL_TEXTURE1);
-		////Bind out name to GL_TEXTURE_2D to make it a 2D texture
-		//glBindTexture(GL_TEXTURE_2D, steel);
-		//litShader.setInt("_SteelTexture", 1);
+		glActiveTexture(GL_TEXTURE1);
+		//Bind out name to GL_TEXTURE_2D to make it a 2D texture
+		glBindTexture(GL_TEXTURE_2D, wood);
+		litShader.setInt("_WoodTexture", 1);
 
 		litShader.setFloat("_Time", time);
 
@@ -262,20 +264,20 @@ int main() {
 		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
 		cubeMesh.draw();
 
-		////Draw sphere
-		//litShader.setMat4("_Model", sphereTransform.getModelMatrix());
-		//sphereMesh.draw();
+		//Draw sphere
+		litShader.setMat4("_Model", sphereTransform.getModelMatrix());
+		sphereMesh.draw();
 
-		//////Draw cylinder
-		//litShader.setMat4("_Model", cylinderTransform.getModelMatrix());
-		//cylinderMesh.draw();
+		//Draw cylinder
+		litShader.setMat4("_Model", cylinderTransform.getModelMatrix());
+		cylinderMesh.draw();
 
 		//Draw plane
 		litShader.setMat4("_Model", planeTransform.getModelMatrix());
 		planeMesh.draw();
 
-		litShader.setMat4("_Model", quadTransform.getModelMatrix());
-		quadMesh.draw();
+		/*litShader.setMat4("_Model", quadTransform.getModelMatrix());
+		quadMesh.draw();*/
 
 		//Draw light as a small sphere using unlit shader, ironically.
 		unlitShader.use();
@@ -283,7 +285,7 @@ int main() {
 		unlitShader.setMat4("_View", camera.getViewMatrix());
 		unlitShader.setMat4("_Model", lightTransform.getModelMatrix());
 		unlitShader.setVec3("_Color", lightColor);
-		//sphereMesh.draw();
+		sphereMesh.draw();
 
 		//Draw UI
 		ImGui::Begin("Material");
@@ -297,7 +299,7 @@ int main() {
 		ImGui::ColorEdit3("Light Color", &Plight.color.r);
 		ImGui::SliderFloat("Radius", &Plight.radius, 0, 10);
 		ImGui::SliderFloat("Light Intentsity", &Plight.intensity, 0, 1);
-		//ImGui::SliderInt3("Light Position", &Plight.pos, -5, 5);
+		ImGui::SliderFloat3("Light Position", &Plight.pos.x, -5, 5);
 		ImGui::End();
 
 		ImGui::Render();

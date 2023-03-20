@@ -23,10 +23,12 @@ void main(){
     v_out.WorldPos = vec3(_Model * vec4(vPos,1));
 
     Normal = vNormal;
-    Tangent = vTangent;
+    Tangent = normalize(vec3(_Model * vec4(vTangent, 0)));
     UV = vUV;
     vec3 Bitangent = cross(Normal, Tangent);
     //Calculate TBN
+    Bitangent = normalize(vec3(_Model * vec4(Bitangent, 0)));
+    Normal = normalize(vec3(_Model * vec4(Normal, 0)));
     TBN = mat3(
     Tangent.x, Bitangent.x, Normal.x,
     Tangent.y, Bitangent.y, Normal.y,
