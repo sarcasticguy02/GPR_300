@@ -104,18 +104,17 @@ GLuint createTexture(const char* filePath)
 }
 
 struct Material {
-	glm::vec3 Color;
-	float AmbientK;
-	float DiffuseK;
-	float SpecularK;
-	float Shininess;
+	float AmbientK = 1;
+	float DiffuseK = 1;
+	float SpecularK = 1;
+	float Shininess = 1;
 };
 
 struct PLight {
-	glm::vec3 color;
-	glm::vec3 pos;
-	float intensity;
-	float radius;
+	glm::vec3 color = glm::vec3(1);
+	glm::vec3 pos = glm::vec3(0, 5, 0);
+	float intensity = 1;
+	float radius = 5;
 };
 
 PLight Plight;

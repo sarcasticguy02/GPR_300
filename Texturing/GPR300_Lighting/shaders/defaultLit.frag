@@ -32,6 +32,7 @@ struct PLight {
 };
 
 uniform PLight _PLights;
+uniform Material _Material;
 uniform vec3 camPos;
 
 vec3 calcPoint(PLight light, Material mat)
@@ -63,6 +64,7 @@ void main(){
     vec3 normal = texture(_NormalMap, UV).rgb;
     normal = normalize(normal * 2.0 - 1.0);
     vec3 nWorld = normalize(TBN * normal);
-    FragColor = vec4(nWorld, 1);
+    vec3 totalLight = calcPoint(_PLights, _Material);
+    FragColor = vec4(totalLight, 1);
     //FragColor = vec4(nWorld, 1.0f) * mix(texture(_SteelTexture, (UV * cos(_Time))), texture(_WoodTexture, UV), cos(_Time));
 }
