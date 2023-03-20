@@ -61,8 +61,8 @@ vec3 calcPoint(PLight light, Material mat)
 
 void main(){         
     vec3 normal = texture(_NormalMap, UV).rgb;
-    normal = normal * 2.0 - 1.0;
-    vec3 nWorld = TBN * normal;
+    normal = normalize(normal * 2.0 - 1.0);
+    vec3 nWorld = normalize(TBN * normal);
     FragColor = vec4(nWorld, 1);
     //FragColor = vec4(nWorld, 1.0f) * mix(texture(_SteelTexture, (UV * cos(_Time))), texture(_WoodTexture, UV), cos(_Time));
 }

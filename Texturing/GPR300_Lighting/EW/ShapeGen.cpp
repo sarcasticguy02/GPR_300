@@ -24,7 +24,7 @@ namespace ew {
 		};
 		meshData.indices.assign(&indices[0], &indices[6]);
 	};
-/*
+
 	void createQuad(float width, float height, MeshData& meshData) {
 		meshData.vertices.clear();
 		meshData.indices.clear();
@@ -32,10 +32,10 @@ namespace ew {
 		float halfHeight = height / 2.0f;
 		Vertex vertices[4] = {
 			//Front face
-			{glm::vec3(-halfWidth, -halfHeight, 0), glm::vec3(0,0,1), glm::vec2(0, 0)}, //BL
-			{glm::vec3(+halfWidth, -halfHeight, 0), glm::vec3(0,0,1), glm::vec2(1, 0)}, //BR
-			{glm::vec3(+halfWidth, +halfHeight, 0), glm::vec3(0,0,1), glm::vec2(1, 1)}, //TR
-			{glm::vec3(-halfWidth, +halfHeight, 0), glm::vec3(0,0,1), glm::vec2(0, 1)} //TL
+			{glm::vec3(-halfWidth, -halfHeight, 0), glm::vec3(0,0,1), glm::vec2(0, 0), glm::vec3(-1, -1, 0)}, //BL
+			{glm::vec3(+halfWidth, -halfHeight, 0), glm::vec3(0,0,1), glm::vec2(1, 0), glm::vec3(1, -1, 0)}, //BR
+			{glm::vec3(+halfWidth, +halfHeight, 0), glm::vec3(0,0,1), glm::vec2(1, 1), glm::vec3(1, 1, 0)}, //TR
+			{glm::vec3(-halfWidth, +halfHeight, 0), glm::vec3(0,0,1), glm::vec2(0, 1), glm::vec3(-1, 1, 0)} //TL
 		};
 		meshData.vertices.assign(&vertices[0], &vertices[4]);
 		unsigned int indices[6] = {
@@ -59,40 +59,40 @@ namespace ew {
 		//-------------
 		Vertex vertices[24] = {
 			//Front face
-			{glm::vec3(-halfWidth, -halfHeight, +halfDepth), glm::vec3(0,0,1), glm::vec2(0, 0)}, //BL
-			{glm::vec3(+halfWidth, -halfHeight, +halfDepth), glm::vec3(0,0,1), glm::vec2(1, 0)}, //BR
-			{glm::vec3(+halfWidth, +halfHeight, +halfDepth), glm::vec3(0,0,1), glm::vec2(1, 1)}, //TR
-			{glm::vec3(-halfWidth, +halfHeight, +halfDepth), glm::vec3(0,0,1), glm::vec2(0, 1)}, //TL
+			{glm::vec3(-halfWidth, -halfHeight, +halfDepth), glm::vec3(0,0,1), glm::vec2(0, 0), glm::vec3(-1, -1, 0)}, //BL
+			{glm::vec3(+halfWidth, -halfHeight, +halfDepth), glm::vec3(0,0,1), glm::vec2(1, 0), glm::vec3(1, -1, 0)}, //BR
+			{glm::vec3(+halfWidth, +halfHeight, +halfDepth), glm::vec3(0,0,1), glm::vec2(1, 1), glm::vec3(1, 1, 0)}, //TR
+			{glm::vec3(-halfWidth, +halfHeight, +halfDepth), glm::vec3(0,0,1), glm::vec2(0, 1), glm::vec3(-1, 1, 0)}, //TL
 
 			//Back face
-			{glm::vec3(+halfWidth, -halfHeight, -halfDepth), glm::vec3(0,0,-1), glm::vec2(0, 0)}, //BL
-			{glm::vec3(-halfWidth, -halfHeight, -halfDepth), glm::vec3(0,0,-1), glm::vec2(1, 0)}, //BR
-			{glm::vec3(-halfWidth, +halfHeight, -halfDepth), glm::vec3(0,0,-1), glm::vec2(1, 1)}, //TR
-			{glm::vec3(+halfWidth, +halfHeight, -halfDepth), glm::vec3(0,0,-1), glm::vec2(0, 1)}, //TL
+			{glm::vec3(+halfWidth, -halfHeight, -halfDepth), glm::vec3(0,0,-1), glm::vec2(0, 0), glm::vec3(-1, -1, 0)}, //BL
+			{glm::vec3(-halfWidth, -halfHeight, -halfDepth), glm::vec3(0,0,-1), glm::vec2(1, 0), glm::vec3(1, -1, 0)}, //BR
+			{glm::vec3(-halfWidth, +halfHeight, -halfDepth), glm::vec3(0,0,-1), glm::vec2(1, 1), glm::vec3(1, 1, 0)}, //TR
+			{glm::vec3(+halfWidth, +halfHeight, -halfDepth), glm::vec3(0,0,-1), glm::vec2(0, 1), glm::vec3(-1, 1, 0)}, //TL
 
 			//Right face
-			{glm::vec3(+halfWidth, -halfHeight, +halfDepth), glm::vec3(1,0,0), glm::vec2(0, 0)}, //BL
-			{glm::vec3(+halfWidth, -halfHeight, -halfDepth), glm::vec3(1,0,0), glm::vec2(1, 0)}, //BR
-			{glm::vec3(+halfWidth, +halfHeight, -halfDepth), glm::vec3(1,0,0), glm::vec2(1, 1)}, //TR
-			{glm::vec3(+halfWidth, +halfHeight, +halfDepth), glm::vec3(1,0,0), glm::vec2(0, 1)}, //TL
+			{glm::vec3(+halfWidth, -halfHeight, +halfDepth), glm::vec3(1,0,0), glm::vec2(0, 0), glm::vec3(-1, -1, 0)}, //BL
+			{glm::vec3(+halfWidth, -halfHeight, -halfDepth), glm::vec3(1,0,0), glm::vec2(1, 0), glm::vec3(1, -1, 0)}, //BR
+			{glm::vec3(+halfWidth, +halfHeight, -halfDepth), glm::vec3(1,0,0), glm::vec2(1, 1), glm::vec3(1, 1, 0)}, //TR
+			{glm::vec3(+halfWidth, +halfHeight, +halfDepth), glm::vec3(1,0,0), glm::vec2(0, 1), glm::vec3(-1, 1, 0)}, //TL
 
 			//Left face
-			{glm::vec3(-halfWidth, -halfHeight, -halfDepth), glm::vec3(-1,0,0), glm::vec2(0, 0)}, //BL
-			{glm::vec3(-halfWidth, -halfHeight, +halfDepth), glm::vec3(-1,0,0), glm::vec2(1, 0)}, //BR
-			{glm::vec3(-halfWidth, +halfHeight, +halfDepth), glm::vec3(-1,0,0), glm::vec2(1, 1)}, //TR
-			{glm::vec3(-halfWidth, +halfHeight, -halfDepth), glm::vec3(-1,0,0), glm::vec2(0, 1)}, //TL
+			{glm::vec3(-halfWidth, -halfHeight, -halfDepth), glm::vec3(-1,0,0), glm::vec2(0, 0), glm::vec3(-1, -1, 0)}, //BL
+			{glm::vec3(-halfWidth, -halfHeight, +halfDepth), glm::vec3(-1,0,0), glm::vec2(1, 0), glm::vec3(1, -1, 0)}, //BR
+			{glm::vec3(-halfWidth, +halfHeight, +halfDepth), glm::vec3(-1,0,0), glm::vec2(1, 1), glm::vec3(1, 1, 0)}, //TR
+			{glm::vec3(-halfWidth, +halfHeight, -halfDepth), glm::vec3(-1,0,0), glm::vec2(0, 1), glm::vec3(-1, 1, 0)}, //TL
 
 			//Top face
-			{glm::vec3(-halfWidth, +halfHeight, +halfDepth), glm::vec3(0,1,0),glm::vec2(0, 0)}, //BL
-			{glm::vec3(+halfWidth, +halfHeight, +halfDepth), glm::vec3(0,1,0), glm::vec2(1, 0)}, //BR
-			{glm::vec3(+halfWidth, +halfHeight, -halfDepth), glm::vec3(0,1,0), glm::vec2(1, 1)}, //TR
-			{glm::vec3(-halfWidth, +halfHeight, -halfDepth), glm::vec3(0,1,0), glm::vec2(0, 1)}, //TL
+			{glm::vec3(-halfWidth, +halfHeight, +halfDepth), glm::vec3(0,1,0),glm::vec2(0, 0), glm::vec3(-1, -1, 0)}, //BL
+			{glm::vec3(+halfWidth, +halfHeight, +halfDepth), glm::vec3(0,1,0), glm::vec2(1, 0), glm::vec3(1, -1, 0)}, //BR
+			{glm::vec3(+halfWidth, +halfHeight, -halfDepth), glm::vec3(0,1,0), glm::vec2(1, 1), glm::vec3(1, 1, 0)}, //TR
+			{glm::vec3(-halfWidth, +halfHeight, -halfDepth), glm::vec3(0,1,0), glm::vec2(0, 1), glm::vec3(-1, 1, 0)}, //TL
 
 			//Bottom face
-			{glm::vec3(-halfWidth, -halfHeight, -halfDepth), glm::vec3(0,-1,0), glm::vec2(0, 0)}, //BL
-			{glm::vec3(+halfWidth, -halfHeight, -halfDepth), glm::vec3(0,-1,0), glm::vec2(1, 0)}, //BR
-			{glm::vec3(+halfWidth, -halfHeight, +halfDepth), glm::vec3(0,-1,0), glm::vec2(1, 1)}, //TR
-			{glm::vec3(-halfWidth, -halfHeight, +halfDepth), glm::vec3(0,-1,0), glm::vec2(0, 1)}, //TL
+			{glm::vec3(-halfWidth, -halfHeight, -halfDepth), glm::vec3(0,-1,0), glm::vec2(0, 0), glm::vec3(-1, -1, 0)}, //BL
+			{glm::vec3(+halfWidth, -halfHeight, -halfDepth), glm::vec3(0,-1,0), glm::vec2(1, 0), glm::vec3(1, -1, 0)}, //BR
+			{glm::vec3(+halfWidth, -halfHeight, +halfDepth), glm::vec3(0,-1,0), glm::vec2(1, 1), glm::vec3(1, 1, 0)}, //TR
+			{glm::vec3(-halfWidth, -halfHeight, +halfDepth), glm::vec3(0,-1,0), glm::vec2(0, 1), glm::vec3(-1, 1, 0)}, //TL
 		};
 		meshData.vertices.assign(&vertices[0], &vertices[24]);
 
@@ -127,7 +127,7 @@ namespace ew {
 		meshData.indices.assign(&indices[0], &indices[36]);
 	}
 
-	
+	/*
 	void createSphere(float radius, int numSegments, MeshData& meshData)
 	{
 		meshData.vertices.clear();

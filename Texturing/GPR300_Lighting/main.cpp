@@ -162,23 +162,23 @@ int main() {
 	GLuint wood = createTexture(woodFile);
 	GLuint steel = createTexture(steelFile);
 
-	/*ew::MeshData cubeMeshData;
+	ew::MeshData cubeMeshData;
 	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData);
-	ew::MeshData sphereMeshData;
+	/*ew::MeshData sphereMeshData;
 	ew::createSphere(0.5f, 64, sphereMeshData);
 	ew::MeshData cylinderMeshData;
 	ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData);*/
 	ew::MeshData planeMeshData;
 	ew::createPlane(1.0f, 1.0f, planeMeshData);
 
-	//ew::Mesh cubeMesh(&cubeMeshData);
+	ew::Mesh cubeMesh(&cubeMeshData);
 	//ew::Mesh sphereMesh(&sphereMeshData);
 	ew::Mesh planeMesh(&planeMeshData);
 	//ew::Mesh cylinderMesh(&cylinderMeshData);
 
-	/*ew::MeshData quadMeshData;
+	ew::MeshData quadMeshData;
 	ew::createQuad(1.0f, 1.0, quadMeshData);
-	ew::Mesh quadMesh(&quadMeshData);*/
+	ew::Mesh quadMesh(&quadMeshData);
 
 	//Enable back face culling
 	glEnable(GL_CULL_FACE);
@@ -193,13 +193,13 @@ int main() {
 	glDepthFunc(GL_LESS);
 
 	//Initialize shape transforms
-	//ew::Transform cubeTransform;
+	ew::Transform cubeTransform;
 	//ew::Transform sphereTransform;
 	ew::Transform planeTransform;
 	//ew::Transform cylinderTransform;
 	ew::Transform lightTransform;
 
-	//cubeTransform.position = glm::vec3(-2.0f, 0.0f, 0.0f);
+	cubeTransform.position = glm::vec3(-2.0f, 0.0f, 0.0f);
 	//sphereTransform.position = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	planeTransform.position = glm::vec3(0.0f, -1.0f, 0.0f);
@@ -210,7 +210,7 @@ int main() {
 	lightTransform.scale = glm::vec3(0.5f);
 	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
-	//ew::Transform quadTransform;
+	ew::Transform quadTransform;
 
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
@@ -260,8 +260,8 @@ int main() {
 		litShader.setFloat("_Time", time);
 
 		////Draw cube
-		//litShader.setMat4("_Model", cubeTransform.getModelMatrix());
-		//cubeMesh.draw();
+		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
+		cubeMesh.draw();
 
 		////Draw sphere
 		//litShader.setMat4("_Model", sphereTransform.getModelMatrix());
@@ -275,8 +275,8 @@ int main() {
 		litShader.setMat4("_Model", planeTransform.getModelMatrix());
 		planeMesh.draw();
 
-		//litShader.setMat4("_Model", quadTransform.getModelMatrix());
-		//quadMesh.draw();
+		litShader.setMat4("_Model", quadTransform.getModelMatrix());
+		quadMesh.draw();
 
 		//Draw light as a small sphere using unlit shader, ironically.
 		unlitShader.use();
