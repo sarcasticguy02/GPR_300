@@ -12,11 +12,6 @@ uniform float _Time;
 uniform sampler2D _NormalMap;
 uniform float _NormalIntensity;
 
-uniform int post;
-uniform int effect;
-uniform float width;
-uniform float height;
-
 in struct Vertex{
     vec3 WorldNormal;
     vec3 WorldPos;
@@ -70,19 +65,6 @@ void main(){
     vec3 normal = texture(_NormalMap, UV).rgb;
     normal = normalize(normal * 2.0 - 1.0) * vec3(_NormalIntensity, _NormalIntensity, 1);
     vec3 totalLight = calcPoint(_PLights, _Material);
-    vec4 color = vec4(totalLight * _Material.Color, 1) * texture(_WoodTexture, UV);
-    if(post == 0)
-    {
-        FragColor = color;
-    }
-    else
-    {
-        //inverse
-        if (effect == 1)
-        {
-            FragColor = vec4(1 - color.x, 1 - color.y, 1 - color.z, 1);
-        }
-    }
-    
+    FragColor = vec4(totalLight * _Material.Color, 1) * texture(_WoodTexture, UV);
     //FragColor = vec4(nWorld, 1.0f) * mix(texture(_SteelTexture, (UV * cos(_Time))), texture(_WoodTexture, UV), cos(_Time));
 }

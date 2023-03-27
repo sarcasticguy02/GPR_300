@@ -123,7 +123,7 @@ struct PLight {
 PLight Plight;
 Material mat;
 float normalIntensity;
-bool post;
+bool post = false;
 int effect = 0;
 
 int main() {
@@ -163,9 +163,20 @@ int main() {
 
 	//Used to draw light sphere
 	Shader unlitShader("shaders/defaultLit.vert", "shaders/unlit.frag");
+	
+	//Frame Buffer
+	Shader framebuff("shaders/framebuff.vert", "shaders/framebuff.frag");
 
 	GLuint wood = createTexture(woodFile);
 	GLuint normalWoodFile = createTexture(normalWood);
+
+	glActiveTexture(GL_TEXTURE0);
+	//Bind out name to GL_TEXTURE_2D to make it a 2D texture
+	glBindTexture(GL_TEXTURE_2D, normalWoodFile);
+
+	glActiveTexture(GL_TEXTURE1);
+	//Bind out name to GL_TEXTURE_2D to make it a 2D texture
+	glBindTexture(GL_TEXTURE_2D, wood);
 
 	ew::MeshData cubeMeshData;
 	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData);
@@ -182,7 +193,7 @@ int main() {
 	ew::Mesh cylinderMesh(&cylinderMeshData);
 
 	ew::MeshData quadMeshData;
-	ew::createQuad(1.0f, 1.0, quadMeshData);
+	ew::createQuad(4, 4, quadMeshData);
 	ew::Mesh quadMesh(&quadMeshData);
 
 	//Enable back face culling
@@ -214,8 +225,6 @@ int main() {
 
 	lightTransform.scale = glm::vec3(0.5f);
 
-	ew::Transform quadTransform;
-
 	//Create fbo
 	unsigned int fbo;
 	glGenFramebuffers(1, &fbo);
@@ -225,24 +234,21 @@ int main() {
 	//Texture Color Buffer
 	unsigned int texture;
 	glGenTextures(1, &texture);
+	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	////Attaching color buffer
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+	//Attaching color buffer
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
 
 	unsigned int rbo;
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
 	//Create storage for depth components
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, SCREEN_WIDTH, SCREEN_HEIGHT);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCREEN_WIDTH, SCREEN_HEIGHT);
 	//Attach RBO to current FBO
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
-	////Clear fbo color + depth buffers of currently bound framebuffer
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glViewport(0, 0, 512, 512);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
 	while (!glfwWindowShouldClose(window)) {
 		lightTransform.position = Plight.pos;
@@ -253,9 +259,6 @@ int main() {
 		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
-
-		GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-		glDrawBuffers(2, buffers);
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -285,20 +288,14 @@ int main() {
 		litShader.setFloat("_PLights.intensity", Plight.intensity);
 		litShader.setFloat("_PLights.radius", Plight.radius);
 
-		glActiveTexture(GL_TEXTURE0);
-		//Bind out name to GL_TEXTURE_2D to make it a 2D texture
-		glBindTexture(GL_TEXTURE_2D, normalWoodFile);
 		litShader.setInt("_NormalMap", 0);
 
-		glActiveTexture(GL_TEXTURE1);
-		//Bind out name to GL_TEXTURE_2D to make it a 2D texture
-		glBindTexture(GL_TEXTURE_2D, wood);
 		litShader.setInt("_WoodTexture", 1);
 
 		litShader.setFloat("_Time", time);
 		litShader.setFloat("_NormalIntensity", normalIntensity);
 
-		////Draw cube
+		//Draw cube
 		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
 		cubeMesh.draw();
 
@@ -314,8 +311,8 @@ int main() {
 		litShader.setMat4("_Model", planeTransform.getModelMatrix());
 		planeMesh.draw();
 
-		/*litShader.setMat4("_Model", quadTransform.getModelMatrix());
-		quadMesh.draw();*/
+		//litShader.setMat4("_Model", quadTransform.getModelMatrix());
+		//quadMesh.draw();
 
 		//Draw light as a small sphere using unlit shader, ironically.
 		unlitShader.use();
@@ -331,10 +328,10 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		//Framebuffer
-		litShader.setInt("post", (int)post);
-		litShader.setInt("effect", effect);
-		litShader.setFloat("width", SCREEN_WIDTH);
-		litShader.setFloat("height", SCREEN_HEIGHT);
+		framebuff.use();
+		framebuff.setInt("post", (int)post);
+		framebuff.setInt("effect", effect);
+		framebuff.setInt("text", 2);
 		quadMesh.draw();
 
 		//Draw UI

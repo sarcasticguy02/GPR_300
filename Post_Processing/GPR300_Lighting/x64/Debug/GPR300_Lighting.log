@@ -1,6 +1,4 @@
 ﻿  main.cpp
-C:\Users\andrew.feddersen\Desktop\Program_Animation\GPR_300\Post_Processing\GPR300_Lighting\main.cpp(336,31): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\andrew.feddersen\Desktop\Program_Animation\GPR_300\Post_Processing\GPR300_Lighting\main.cpp(337,32): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
 glew32s.lib(glew.obj) : warning LNK4099: PDB '' was not found with 'glew32s.lib(glew.obj)' or at ''; linking object as if no debug info
 LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
 LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
