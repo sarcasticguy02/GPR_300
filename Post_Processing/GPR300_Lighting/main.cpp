@@ -22,6 +22,8 @@
 #include "EW/Transform.h"
 #include "EW/ShapeGen.h"
 
+#include "iostream"
+
 void processInput(GLFWwindow* window);
 void resizeFrameBufferCallback(GLFWwindow* window, int width, int height);
 void keyboardCallback(GLFWwindow* window, int keycode, int scancode, int action, int mods);
@@ -121,7 +123,8 @@ struct PLight {
 PLight Plight;
 Material mat;
 float normalIntensity;
-bool animation;
+bool post;
+int effect = 0;
 
 int main() {
 	if (!glfwInit()) {
@@ -129,7 +132,7 @@ int main() {
 		return 1;
 	}
 
-	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Lighting", 0, 0);
+	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Post Processing", 0, 0);
 	glfwMakeContextCurrent(window);
 
 	if (glewInit() != GLEW_OK) {
@@ -178,9 +181,9 @@ int main() {
 	ew::Mesh planeMesh(&planeMeshData);
 	ew::Mesh cylinderMesh(&cylinderMeshData);
 
-	/*ew::MeshData quadMeshData;
+	ew::MeshData quadMeshData;
 	ew::createQuad(1.0f, 1.0, quadMeshData);
-	ew::Mesh quadMesh(&quadMeshData);*/
+	ew::Mesh quadMesh(&quadMeshData);
 
 	//Enable back face culling
 	glEnable(GL_CULL_FACE);
@@ -211,25 +214,13 @@ int main() {
 
 	lightTransform.scale = glm::vec3(0.5f);
 
-	//ew::Transform quadTransform;
+	ew::Transform quadTransform;
 
-	//Create
+	//Create fbo
 	unsigned int fbo;
 	glGenFramebuffers(1, &fbo);
 	//Bind - we are drawing to this frame buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-	glEnable(GL_DEPTH_TEST);
-	//Clear fbo color + depth buffers of currently bound framebuffer
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glViewport(0, 0, 512, 512);
-
-	//Unbind (will reset to default frambuffer)
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDisable(GL_DEPTH_TEST);
-	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//Delete
-	glDeleteFramebuffers(1, &fbo);
 
 	//Texture Color Buffer
 	unsigned int texture;
@@ -238,9 +229,8 @@ int main() {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	//Attaching color buffer
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+	////Attaching color buffer
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
 
 	unsigned int rbo;
 	glGenRenderbuffers(1, &rbo);
@@ -250,14 +240,22 @@ int main() {
 	//Attach RBO to current FBO
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
-	//Returns the state of the currently bound FBO
-	GLenum fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	////Clear fbo color + depth buffers of currently bound framebuffer
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glViewport(0, 0, 512, 512);
 
 	while (!glfwWindowShouldClose(window)) {
 		lightTransform.position = Plight.pos;
+
 		processInput(window);
+		glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+
+		GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+		glDrawBuffers(2, buffers);
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -266,13 +264,6 @@ int main() {
 		float time = (float)glfwGetTime();
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
-
-		//UPDATE
-		if (!animation)
-		{
-			cubeTransform.rotation.x += deltaTime;
-			cubeTransform.rotation.y -= deltaTime;
-		}
 		
 		litShader.setVec3("camPos", camera.getPosition());
 
@@ -333,6 +324,18 @@ int main() {
 		unlitShader.setMat4("_Model", lightTransform.getModelMatrix());
 		unlitShader.setVec3("_Color", lightColor);
 		sphereMesh.draw();
+		
+		//Unbind (will reset to default frambuffer)
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_DEPTH_TEST);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		//Framebuffer
+		litShader.setInt("post", (int)post);
+		litShader.setInt("effect", effect);
+		litShader.setFloat("width", SCREEN_WIDTH);
+		litShader.setFloat("height", SCREEN_HEIGHT);
+		quadMesh.draw();
 
 		//Draw UI
 		ImGui::Begin("Material");
@@ -351,7 +354,8 @@ int main() {
 
 		ImGui::Begin("Animations");
 		ImGui::SliderFloat("Normal Intensity", &normalIntensity, 0, 1);
-		ImGui::Checkbox("Pause Cube", &animation);
+		ImGui::Checkbox("Post Processing", &post);
+		ImGui::SliderInt("Effect", &effect, 0, 2);
 		ImGui::End();
 
 		ImGui::Render();
@@ -360,6 +364,10 @@ int main() {
 
 		glfwSwapBuffers(window);
 	}
+
+	//Delete
+	glDeleteFramebuffers(1, &fbo);
+	glDeleteTextures(1, &texture);
 
 	glfwTerminate();
 	return 0;
