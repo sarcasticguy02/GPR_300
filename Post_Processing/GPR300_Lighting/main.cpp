@@ -193,7 +193,7 @@ int main() {
 	ew::Mesh cylinderMesh(&cylinderMeshData);
 
 	ew::MeshData quadMeshData;
-	ew::createQuad(4, 4, quadMeshData);
+	ew::createQuad(2, 2, quadMeshData);
 	ew::Mesh quadMesh(&quadMeshData);
 
 	//Enable back face culling
@@ -332,6 +332,7 @@ int main() {
 		framebuff.setInt("post", (int)post);
 		framebuff.setInt("effect", effect);
 		framebuff.setInt("text", 2);
+		framebuff.setFloat("_Time", time);
 		quadMesh.draw();
 
 		//Draw UI

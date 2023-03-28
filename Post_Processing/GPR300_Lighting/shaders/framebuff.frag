@@ -5,10 +5,12 @@ in vec2 uv;
 
 uniform int post;
 uniform int effect;
+uniform float _Time;
 uniform sampler2D text;
 
 void main()
 {
+    bool up = true;
     vec4 color = texture(text, uv);
     if(post == 0)
     {
@@ -28,6 +30,12 @@ void main()
             color.x = avg;
             color.y = avg;
             color.z = avg;
+            FragColor = color;
+        }
+        //zoom out with multiple screens
+        else if(effect == 2)
+        {
+            color = texture(text, uv * _Time);
             FragColor = color;
         }
     }
