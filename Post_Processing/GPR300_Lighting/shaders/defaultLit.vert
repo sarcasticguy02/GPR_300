@@ -18,8 +18,15 @@ out struct Vertex{
     vec3 WorldPos;
 }v_out;
 
+//shadows
+uniform mat4 _LightViewProj; //view + projection of light source
+out vec4 lightSpacePos; //position in light space
+
+
 
 void main(){    
+    lightSpacePos = _LightViewProj * _Model * vec4(vPos,1);
+
     v_out.WorldPos = vec3(_Model * vec4(vPos,1));
 
     Normal = vNormal;

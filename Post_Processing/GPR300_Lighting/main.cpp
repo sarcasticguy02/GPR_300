@@ -113,14 +113,13 @@ struct Material {
 	float Shininess = 1;
 };
 
-struct PLight {
-	glm::vec3 color = glm::vec3(1);
-	glm::vec3 pos = glm::vec3(0, 5, 0);
-	float intensity = 1;
-	float radius = 5;
+struct DLight {
+	glm::vec3 dir;
+	glm::vec3 color;
+	float intensity = .5f;
 };
 
-PLight Plight;
+DLight Dlight;
 Material mat;
 float normalIntensity;
 bool post = false;
@@ -166,6 +165,9 @@ int main() {
 	
 	//Frame Buffer
 	Shader framebuff("shaders/framebuff.vert", "shaders/framebuff.frag");
+
+	//Shadow Buffer
+	Shader depthbuff("shaders/depthOnly.vert", "shaders/depthOnly.frag");
 
 	GLuint wood = createTexture(woodFile);
 	GLuint normalWoodFile = createTexture(normalWood);
@@ -242,16 +244,27 @@ int main() {
 	//Attaching color buffer
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
 
-	unsigned int rbo;
-	glGenRenderbuffers(1, &rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	//Create storage for depth components
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCREEN_WIDTH, SCREEN_HEIGHT);
-	//Attach RBO to current FBO
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+	//unsigned int rbo;
+	//glGenRenderbuffers(1, &rbo);
+	//glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	////Create storage for depth components
+	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCREEN_WIDTH, SCREEN_HEIGHT);
+	////Attach RBO to current FBO
+	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+	//shadows fbo
+	unsigned int shadows;
+	glGenTextures(3, &shadows);
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, shadows);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadows, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
 
 	while (!glfwWindowShouldClose(window)) {
-		lightTransform.position = Plight.pos;
 
 		processInput(window);
 		glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -267,7 +280,7 @@ int main() {
 		float time = (float)glfwGetTime();
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
-		
+
 		litShader.setVec3("camPos", camera.getPosition());
 
 		//Material
@@ -283,10 +296,9 @@ int main() {
 		litShader.setMat4("_View", camera.getViewMatrix());
 		//litShader.setVec3("_LightPos", lightTransform.position);
 
-		litShader.setVec3("_PLights.color", Plight.color);
-		litShader.setVec3("_PLights.pos", Plight.pos);
-		litShader.setFloat("_PLights.intensity", Plight.intensity);
-		litShader.setFloat("_PLights.radius", Plight.radius);
+		litShader.setVec3("_DLights.color", lightColor);
+		litShader.setVec3("_DLights.dir", Dlight.dir);
+		litShader.setFloat("_DLights.intensity", Dlight.intensity);
 
 		litShader.setInt("_NormalMap", 0);
 
@@ -343,15 +355,13 @@ int main() {
 		ImGui::SliderFloat("Shininess", &mat.Shininess, 1, 512);
 		ImGui::End();
 
-		ImGui::Begin("Point Light");
-		ImGui::ColorEdit3("Light Color", &Plight.color.r);
-		ImGui::SliderFloat("Radius", &Plight.radius, 0, 10);
-		ImGui::SliderFloat("Light Intentsity", &Plight.intensity, 0, 1);
-		ImGui::SliderFloat3("Light Position", &Plight.pos.x, -5, 5);
+		ImGui::Begin("Directional Light");
+		ImGui::ColorEdit3("Light Color", &lightColor.r);
+		ImGui::SliderFloat("Light Intentsity", &Dlight.intensity, 0, 1);
+		ImGui::DragFloat3("Light Direction", &Dlight.dir.x);
 		ImGui::End();
 
-		ImGui::Begin("Animations");
-		ImGui::SliderFloat("Normal Intensity", &normalIntensity, 0, 1);
+		ImGui::Begin("Post Proccessing");
 		ImGui::Checkbox("Post Processing", &post);
 		ImGui::SliderInt("Effect", &effect, 0, 2);
 		ImGui::End();
@@ -365,6 +375,7 @@ int main() {
 
 	//Delete
 	glDeleteFramebuffers(1, &fbo);
+	glDeleteFramebuffers(2, &shadows);
 	glDeleteTextures(1, &texture);
 
 	glfwTerminate();
