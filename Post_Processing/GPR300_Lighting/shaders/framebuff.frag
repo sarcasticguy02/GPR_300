@@ -10,7 +10,6 @@ uniform sampler2D text;
 
 void main()
 {
-    bool up = true;
     vec4 color = texture(text, uv);
     if(post == 0)
     {
