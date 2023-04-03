@@ -25,23 +25,19 @@ struct Material{
     float Shininess;
 };
 
-struct PLight {
-	vec3 color;
-	vec3 pos;
-	float intensity;
-	float radius;
+struct DLight{
+    vec3 pos;
+    vec3 dir;
+    vec3 color;
+    float intensity;
 };
 
-uniform PLight _PLights;
+uniform DLight _DLights;
 uniform Material _Material;
 uniform vec3 camPos;
 
-vec3 calcPoint(PLight light, Material mat)
+vec3 calcBlinnPhong(DLight light, Material mat)
 {
-    vec3 dir = normalize(light.pos - v_out.WorldNormal);
-    float dist = distance(v_out.WorldPos, light.pos);
-    dir = normalize(dir);
-
     //Ambient
     float intensity = light.intensity / 100;
 	vec3 rgb = light.color;	
@@ -49,22 +45,20 @@ vec3 calcPoint(PLight light, Material mat)
 
     //Diffuse
     vec3 normal = normalize(v_out.WorldNormal);
-    vec3 diffuse = mat.DiffuseK * max(dot(dir, normal), 0) * rgb * intensity;
+    vec3 diffuse = mat.DiffuseK * max(dot(normalize(light.dir), normal), 0) * rgb * intensity;
 
     //Specular (only thing that changes from phong to blinn-phong)
     vec3 viewer = normalize(camPos - v_out.WorldPos);
-    vec3 H = normalize(viewer + normalize(dir));
+    vec3 H = normalize(viewer + normalize(light.dir));
     vec3 specular = mat.SpecularK * pow(max(dot(normal, H), 0), mat.Shininess) * rgb * intensity;
 
-    vec3 color = ambient + diffuse + specular;
-    float attinuation = clamp(1 - pow((dist/light.radius), 4), 0, 1);
-    return color * attinuation;
+    return ambient + diffuse + specular;
 }
 
 void main(){         
     vec3 normal = texture(_NormalMap, UV).rgb;
     normal = normalize(normal * 2.0 - 1.0) * vec3(_NormalIntensity, _NormalIntensity, 1);
-    vec3 totalLight = calcPoint(_PLights, _Material);
+    vec3 totalLight = calcBlinnPhong(_DLights, _Material);
     FragColor = vec4(totalLight * _Material.Color, 1) * texture(_WoodTexture, UV);
     //FragColor = vec4(nWorld, 1.0f) * mix(texture(_SteelTexture, (UV * cos(_Time))), texture(_WoodTexture, UV), cos(_Time));
 }

@@ -113,14 +113,14 @@ struct Material {
 	float Shininess = 1;
 };
 
-struct PLight {
-	glm::vec3 color = glm::vec3(1);
-	glm::vec3 pos = glm::vec3(0, 5, 0);
-	float intensity = 1;
-	float radius = 5;
+struct DLight {
+	glm::vec3 pos;
+	glm::vec3 dir;
+	glm::vec3 color;
+	float intensity;
 };
 
-PLight Plight;
+DLight Dlight;
 Material mat;
 float normalIntensity;
 bool post = false;
@@ -251,7 +251,7 @@ int main() {
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
 	while (!glfwWindowShouldClose(window)) {
-		lightTransform.position = Plight.pos;
+		lightTransform.position = Dlight.pos;
 
 		processInput(window);
 		glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -283,10 +283,10 @@ int main() {
 		litShader.setMat4("_View", camera.getViewMatrix());
 		//litShader.setVec3("_LightPos", lightTransform.position);
 
-		litShader.setVec3("_PLights.color", Plight.color);
-		litShader.setVec3("_PLights.pos", Plight.pos);
-		litShader.setFloat("_PLights.intensity", Plight.intensity);
-		litShader.setFloat("_PLights.radius", Plight.radius);
+		litShader.setVec3("_DLights.dir", Dlight.dir);
+		litShader.setVec3("_DLights.color", Dlight.color);
+		litShader.setVec3("_DLights.pos", Dlight.pos);
+		litShader.setFloat("_DLights.intensity", Dlight.intensity);
 
 		litShader.setInt("_NormalMap", 0);
 
@@ -343,11 +343,11 @@ int main() {
 		ImGui::SliderFloat("Shininess", &mat.Shininess, 1, 512);
 		ImGui::End();
 
-		ImGui::Begin("Point Light");
-		ImGui::ColorEdit3("Light Color", &Plight.color.r);
-		ImGui::SliderFloat("Radius", &Plight.radius, 0, 10);
-		ImGui::SliderFloat("Light Intentsity", &Plight.intensity, 0, 1);
-		ImGui::SliderFloat3("Light Position", &Plight.pos.x, -5, 5);
+		ImGui::Begin("Directional Light");
+		ImGui::ColorEdit3("Light Color", &Dlight.color.r);
+		ImGui::DragFloat3("Light Direction", &Dlight.dir.x);
+		ImGui::SliderFloat("Light Intentsity", &Dlight.intensity, 0, 1);
+		ImGui::SliderFloat3("Light Position", &Dlight.pos.x, -5, 5);
 		ImGui::End();
 
 		ImGui::Begin("Animations");
