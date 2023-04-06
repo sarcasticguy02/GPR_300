@@ -161,6 +161,8 @@
     <ClInclude Include="EW\Transform.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\depth.frag" />
+    <None Include="shaders\depth.vert" />
     <None Include="shaders\framebuff.frag" />
     <None Include="shaders\framebuff.vert" />
   </ItemGroup>

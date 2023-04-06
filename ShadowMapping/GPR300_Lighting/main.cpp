@@ -167,6 +167,9 @@ int main() {
 	//Frame Buffer
 	Shader framebuff("shaders/framebuff.vert", "shaders/framebuff.frag");
 
+	//Shaddow Buffer
+	Shader depthbuff("shaders/depth.vert", "shaders/depth.frag");
+
 	GLuint wood = createTexture(woodFile);
 	GLuint normalWoodFile = createTexture(normalWood);
 
@@ -249,6 +252,18 @@ int main() {
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCREEN_WIDTH, SCREEN_HEIGHT);
 	//Attach RBO to current FBO
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+	//depth texture
+	unsigned int depth;
+	glGenTextures(2, &depth);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, depth);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 500, 500, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
 
 	while (!glfwWindowShouldClose(window)) {
 		lightTransform.position = Dlight.pos;
@@ -366,6 +381,7 @@ int main() {
 	//Delete
 	glDeleteFramebuffers(1, &fbo);
 	glDeleteTextures(1, &texture);
+	glDeleteTextures(2, &depth);
 
 	glfwTerminate();
 	return 0;

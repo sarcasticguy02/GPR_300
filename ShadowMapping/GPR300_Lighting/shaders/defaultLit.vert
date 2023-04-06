@@ -7,11 +7,13 @@ layout (location = 3) in vec3 vTangent;
 uniform mat4 _Model;
 uniform mat4 _View;
 uniform mat4 _Projection;
+uniform mat4 _LightViewProj; //view + projection of light source
 
 out vec3 Normal;
 out vec3 Tangent;
 out vec2 UV;
 out mat3 TBN;
+out vec4 lightSpacePos; //position in light space
 
 out struct Vertex{
     vec3 WorldNormal;
@@ -38,5 +40,8 @@ void main(){
     TBN = transpose(inverse(mat3(_Model))) * TBN;
     Normal = TBN * Normal;
     v_out.WorldNormal = Normal;
+
+    lightSpacePos = _LightViewProj * _Model * vec4(vPos, 1);
+
     gl_Position = _Projection * _View * _Model * vec4(vPos,1);
 }
