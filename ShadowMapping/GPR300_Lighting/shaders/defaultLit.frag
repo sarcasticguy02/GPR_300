@@ -12,7 +12,6 @@ uniform float _Time;
 uniform sampler2D _ShadowMap;
 
 uniform sampler2D _NormalMap;
-uniform float _NormalIntensity;
 
 in struct Vertex{
     vec3 WorldNormal;
@@ -28,7 +27,6 @@ struct Material{
 };
 
 struct DLight{
-    vec3 pos;
     vec3 dir;
     vec3 color;
     float intensity;
@@ -37,6 +35,9 @@ struct DLight{
 uniform DLight _DLights;
 uniform Material _Material;
 uniform vec3 camPos;
+
+uniform float _MinBias;
+uniform float _MaxBias;
 
 float calcShadow(sampler2D map, vec4 lightSpace)
 {
@@ -52,7 +53,7 @@ float calcShadow(sampler2D map, vec4 lightSpace)
 
 void main(){         
     vec3 normal = texture(_NormalMap, UV).rgb;
-    normal = normalize(normal * 2.0 - 1.0) * vec3(_NormalIntensity, _NormalIntensity, 1);
+    normal = normalize(normal * 2.0 - 1.0);
 
     //Ambient
     float intensity = _DLights.intensity / 100;
@@ -71,7 +72,7 @@ void main(){
     vec3 totalLight = ambient + diffuse + specular;
 
     float shadow = calcShadow(_ShadowMap, lightSpacePos);
-    vec3 light = ambient + (diffuse + specular) * (1.0 - shadow);
+    vec3 light = (ambient + (diffuse + specular)) * (1.0 - shadow);
 
     FragColor = vec4(totalLight * _Material.Color, 1) * texture(_WoodTexture, UV);
     //FragColor = vec4(nWorld, 1.0f) * mix(texture(_SteelTexture, (UV * cos(_Time))), texture(_WoodTexture, UV), cos(_Time));

@@ -24,6 +24,7 @@
 
 #include "iostream"
 
+void renderObjects(Shader& shader, ew::Transform& obj, ew::Mesh& mesh);
 void processInput(GLFWwindow* window);
 void resizeFrameBufferCallback(GLFWwindow* window, int width, int height);
 void keyboardCallback(GLFWwindow* window, int keycode, int scancode, int action, int mods);
@@ -114,17 +115,16 @@ struct Material {
 };
 
 struct DLight {
-	glm::vec3 pos;
-	glm::vec3 dir;
-	glm::vec3 color;
-	float intensity;
+	glm::vec3 dir = glm::vec3(0, 5, 0);
+	glm::vec3 color = glm::vec3(1);
+	float intensity = .2f;
 };
 
 DLight Dlight;
 Material mat;
-float normalIntensity;
-bool post = false;
-int effect = 0;
+float lightDistance = 10;
+float minBias = 0.005f;
+float maxBias = 0.05f;
 
 int main() {
 	if (!glfwInit()) {
@@ -231,44 +231,26 @@ int main() {
 	//Create fbo
 	unsigned int fbo;
 	glGenFramebuffers(1, &fbo);
-	//Bind - we are drawing to this frame buffer
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-	//Texture Color Buffer
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//Attaching color buffer
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-
-	unsigned int rbo;
-	glGenRenderbuffers(1, &rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	//Create storage for depth components
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCREEN_WIDTH, SCREEN_HEIGHT);
-	//Attach RBO to current FBO
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
 	//depth texture
 	unsigned int depth;
-	glGenTextures(2, &depth);
+	glGenTextures(1, &depth);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, depth);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 2048, 2048, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	
+	//Bind - we are drawing to this frame buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 
 	while (!glfwWindowShouldClose(window)) {
-		lightTransform.position = Dlight.pos;
+		lightTransform.position = glm::normalize(-Dlight.dir) * lightDistance;
 
 		processInput(window);
 		glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -285,6 +267,22 @@ int main() {
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
 		
+		glm::mat4 lightSpace = glm::mat4(glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, .1f, 100.0f)) * glm::lookAt(lightPosition, glm::vec3(0, 0, 0), glm::vec3(0.0f, 1.0f, 0.0f));
+
+		depthbuff.use();
+		depthbuff.setMat4("_View", lightSpace);
+
+		renderObjects(depthbuff, cubeTransform, cubeMesh);
+		renderObjects(depthbuff, sphereTransform, sphereMesh);
+		renderObjects(depthbuff, planeTransform, planeMesh);
+		renderObjects(depthbuff, cylinderTransform, cylinderMesh);
+
+		//Unbind (will reset to default frambuffer)
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//glDisable(GL_DEPTH_TEST);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		litShader.use();
 		litShader.setVec3("camPos", camera.getPosition());
 
 		//Material
@@ -295,62 +293,29 @@ int main() {
 		litShader.setFloat("_Material.Shininess", mat.Shininess);
 
 		//Draw
-		litShader.use();
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
-		//litShader.setVec3("_LightPos", lightTransform.position);
+		litShader.setMat4("_LightViewProj", lightSpace);
 
 		litShader.setVec3("_DLights.dir", Dlight.dir);
 		litShader.setVec3("_DLights.color", Dlight.color);
-		litShader.setVec3("_DLights.pos", Dlight.pos);
 		litShader.setFloat("_DLights.intensity", Dlight.intensity);
 
 		litShader.setInt("_NormalMap", 0);
-
 		litShader.setInt("_WoodTexture", 1);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, depth);
+		litShader.setInt("_ShadowMap", 2);
 
 		litShader.setFloat("_Time", time);
-		litShader.setFloat("_NormalIntensity", normalIntensity);
 
-		//Draw cube
-		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
-		cubeMesh.draw();
+		litShader.setFloat("_MinBias", minBias);
+		litShader.setFloat("_MaxBias", maxBias);
 
-		//Draw sphere
-		litShader.setMat4("_Model", sphereTransform.getModelMatrix());
-		sphereMesh.draw();
-
-		//Draw cylinder
-		litShader.setMat4("_Model", cylinderTransform.getModelMatrix());
-		cylinderMesh.draw();
-
-		//Draw plane
-		litShader.setMat4("_Model", planeTransform.getModelMatrix());
-		planeMesh.draw();
-
-		//litShader.setMat4("_Model", quadTransform.getModelMatrix());
-		//quadMesh.draw();
-
-		//Draw light as a small sphere using unlit shader, ironically.
-		unlitShader.use();
-		unlitShader.setMat4("_Projection", camera.getProjectionMatrix());
-		unlitShader.setMat4("_View", camera.getViewMatrix());
-		unlitShader.setMat4("_Model", lightTransform.getModelMatrix());
-		unlitShader.setVec3("_Color", lightColor);
-		sphereMesh.draw();
-		
-		//Unbind (will reset to default frambuffer)
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDisable(GL_DEPTH_TEST);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
-		//Framebuffer
-		framebuff.use();
-		framebuff.setInt("post", (int)post);
-		framebuff.setInt("effect", effect);
-		framebuff.setInt("text", 2);
-		framebuff.setFloat("_Time", time);
-		quadMesh.draw();
+		renderObjects(litShader, cubeTransform, cubeMesh);
+		renderObjects(litShader, sphereTransform, sphereMesh);
+		renderObjects(litShader, cylinderTransform, cylinderMesh);
+		renderObjects(litShader, planeTransform, planeMesh);
 
 		//Draw UI
 		ImGui::Begin("Material");
@@ -364,13 +329,12 @@ int main() {
 		ImGui::ColorEdit3("Light Color", &Dlight.color.r);
 		ImGui::DragFloat3("Light Direction", &Dlight.dir.x);
 		ImGui::SliderFloat("Light Intentsity", &Dlight.intensity, 0, 1);
-		ImGui::SliderFloat3("Light Position", &Dlight.pos.x, -5, 5);
+		ImGui::SliderFloat("Light Distance", &lightDistance, 5, 20);
 		ImGui::End();
 
-		ImGui::Begin("Animations");
-		ImGui::SliderFloat("Normal Intensity", &normalIntensity, 0, 1);
-		ImGui::Checkbox("Post Processing", &post);
-		ImGui::SliderInt("Effect", &effect, 0, 2);
+		ImGui::Begin("Shadow Bias");
+		ImGui::SliderFloat("Min Bias Value", &minBias, 0.001f, 0.009f);
+		ImGui::SliderFloat("Max Bias Value", &maxBias, 0.01f, 0.1f);
 		ImGui::End();
 
 		ImGui::Render();
@@ -382,12 +346,18 @@ int main() {
 
 	//Delete
 	glDeleteFramebuffers(1, &fbo);
-	glDeleteTextures(1, &texture);
 	glDeleteTextures(2, &depth);
 
 	glfwTerminate();
 	return 0;
 }
+
+void renderObjects(Shader& shader, ew::Transform& obj, ew::Mesh& mesh)
+{
+	shader.setMat4("_Model", obj.getModelMatrix());
+	mesh.draw();
+}
+
 //Author: Eric Winebrenner
 void resizeFrameBufferCallback(GLFWwindow* window, int width, int height)
 {

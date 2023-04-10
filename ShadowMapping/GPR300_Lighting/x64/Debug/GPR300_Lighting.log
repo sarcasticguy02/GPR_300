@@ -1,2 +1,5 @@
 ﻿  main.cpp
-  GPR300_Lighting.vcxproj -> C:\Users\andrew.feddersen\Desktop\GPR_300\ShadowMapping\x64\Debug\GPR300_Lighting.exe
+glew32s.lib(glew.obj) : warning LNK4099: PDB '' was not found with 'glew32s.lib(glew.obj)' or at ''; linking object as if no debug info
+LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
+LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
+  GPR300_Lighting.vcxproj -> C:\Users\andrew.feddersen\Desktop\Program_Animation\GPR_300\ShadowMapping\x64\Debug\GPR300_Lighting.exe
