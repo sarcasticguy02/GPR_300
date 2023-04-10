@@ -42,7 +42,7 @@ uniform float _MaxBias;
 float calcShadow(sampler2D map, vec4 lightSpace)
 {
     //Homogeneous Clip space to NDC coords [-w, w] to [-1, 1]
-    vec3 sampleCoord = lightSpace.xyz  /lightSpace.w;
+    vec3 sampleCoord = lightSpace.xyz / lightSpace.w;
     //Convert from [-1, 1] to [0, 1] for sampling
     sampleCoord = sampleCoord * 0.5 + 0.5;
     float shadowMapDepth = texture(map, sampleCoord.xy).r;
@@ -72,7 +72,7 @@ void main(){
     vec3 totalLight = ambient + diffuse + specular;
 
     float shadow = calcShadow(_ShadowMap, lightSpacePos);
-    vec3 light = (ambient + (diffuse + specular)) * (1.0 - shadow);
+    totalLight *= (1 - shadow);
 
     FragColor = vec4(totalLight * _Material.Color, 1) * texture(_WoodTexture, UV);
     //FragColor = vec4(nWorld, 1.0f) * mix(texture(_SteelTexture, (UV * cos(_Time))), texture(_WoodTexture, UV), cos(_Time));

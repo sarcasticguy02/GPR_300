@@ -122,7 +122,6 @@ struct DLight {
 
 DLight Dlight;
 Material mat;
-float lightDistance = 10;
 float minBias = 0.005f;
 float maxBias = 0.05f;
 
@@ -250,7 +249,6 @@ int main() {
 	glReadBuffer(GL_NONE);
 
 	while (!glfwWindowShouldClose(window)) {
-		lightTransform.position = glm::normalize(-Dlight.dir) * lightDistance;
 
 		processInput(window);
 		glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -329,7 +327,6 @@ int main() {
 		ImGui::ColorEdit3("Light Color", &Dlight.color.r);
 		ImGui::DragFloat3("Light Direction", &Dlight.dir.x);
 		ImGui::SliderFloat("Light Intentsity", &Dlight.intensity, 0, 1);
-		ImGui::SliderFloat("Light Distance", &lightDistance, 5, 20);
 		ImGui::End();
 
 		ImGui::Begin("Shadow Bias");
