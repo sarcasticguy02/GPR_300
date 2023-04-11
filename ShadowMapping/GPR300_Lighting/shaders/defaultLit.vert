@@ -39,7 +39,8 @@ void main(){
 
     TBN = transpose(inverse(mat3(_Model))) * TBN;
     Normal = TBN * Normal;
-    v_out.WorldNormal = Normal;
+
+    v_out.WorldNormal = transpose(inverse(mat3(_Model))) * vNormal;
 
     lightSpacePos = _LightViewProj * _Model * vec4(vPos, 1);
 

@@ -108,16 +108,16 @@ GLuint createTexture(const char* filePath)
 
 struct Material {
 	glm::vec3 Color = glm::vec3(1);
-	float AmbientK = 1;
-	float DiffuseK = 1;
-	float SpecularK = 1;
+	float AmbientK = .3;
+	float DiffuseK = .5;
+	float SpecularK = .2;
 	float Shininess = 1;
 };
 
 struct DLight {
-	glm::vec3 dir = glm::vec3(0, 5, 0);
+	glm::vec3 dir = glm::vec3(0.1, -0.9, 0);
 	glm::vec3 color = glm::vec3(1);
-	float intensity = .2f;
+	float intensity = 1.0f;
 };
 
 DLight Dlight;
@@ -236,7 +236,7 @@ int main() {
 	glGenTextures(1, &depth);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, depth);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
@@ -251,11 +251,7 @@ int main() {
 	while (!glfwWindowShouldClose(window)) {
 
 		processInput(window);
-		glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glEnable(GL_DEPTH_TEST);
+		
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -264,8 +260,14 @@ int main() {
 		float time = (float)glfwGetTime();
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
+
+		glViewport(0, 0, 1024, 1024);
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+		glClearColor(bgColor.r, bgColor.g, bgColor.b, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
 		
-		glm::mat4 lightSpace = glm::mat4(glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, .1f, 100.0f)) * glm::lookAt(lightPosition, glm::vec3(0, 0, 0), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 lightSpace = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, .1f, 15.0f) * glm::lookAt(glm::normalize(-Dlight.dir) * 10.0f, glm::vec3(0, 0, 0), glm::vec3(0.0f, 1.0f, 0.0f));
 
 		depthbuff.use();
 		depthbuff.setMat4("_View", lightSpace);
@@ -279,6 +281,8 @@ int main() {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		//glDisable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 		litShader.use();
 		litShader.setVec3("camPos", camera.getPosition());
