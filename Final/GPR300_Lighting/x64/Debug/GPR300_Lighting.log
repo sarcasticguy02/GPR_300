@@ -1,0 +1,3 @@
+﻿  main.cpp
+C:\Users\andrew.feddersen\Desktop\GPR_300\Final\GPR300_Lighting\main.cpp(119,18): warning C4305: 'initializing': truncation from 'double' to 'float'
+  GPR300_Lighting.vcxproj -> C:\Users\andrew.feddersen\Desktop\GPR_300\Final\x64\Debug\GPR300_Lighting.exe
