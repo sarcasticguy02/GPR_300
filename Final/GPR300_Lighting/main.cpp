@@ -122,9 +122,8 @@ struct PLight {
 
 PLight Plight;
 Material mat;
-float normalIntensity;
-bool post = false;
-int effect = 0;
+//Effects
+bool shake = false, inverse = false, grey = false, red = false;
 
 int main() {
 	if (!glfwInit()) {
@@ -281,6 +280,15 @@ int main() {
 		litShader.use();
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
+		litShader.setFloat("time", time);
+		if (shake)
+		{
+			litShader.setInt("shake", 1);
+		}
+		else
+		{
+			litShader.setInt("shake", 0);
+		}
 		//litShader.setVec3("_LightPos", lightTransform.position);
 
 		litShader.setVec3("_PLights.color", Plight.color);
@@ -293,7 +301,6 @@ int main() {
 		litShader.setInt("_WoodTexture", 1);
 
 		litShader.setFloat("_Time", time);
-		litShader.setFloat("_NormalIntensity", normalIntensity);
 
 		//Draw cube
 		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
@@ -326,8 +333,6 @@ int main() {
 		
 		//Framebuffer
 		framebuff.use();
-		framebuff.setInt("post", (int)post);
-		framebuff.setInt("effect", effect);
 		framebuff.setInt("text", 2);
 		framebuff.setFloat("_Time", time);
 		quadMesh.draw();
@@ -347,10 +352,9 @@ int main() {
 		ImGui::SliderFloat3("Light Position", &Plight.pos.x, -5, 5);
 		ImGui::End();
 
-		ImGui::Begin("Animations");
-		ImGui::SliderFloat("Normal Intensity", &normalIntensity, 0, 1);
-		ImGui::Checkbox("Post Processing", &post);
-		ImGui::SliderInt("Effect", &effect, 0, 2);
+		ImGui::Begin("Effects");
+		ImGui::Checkbox("Bloodlust", &red);
+		ImGui::Checkbox("Shake", &shake);
 		ImGui::End();
 
 		ImGui::Render();

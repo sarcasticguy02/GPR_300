@@ -8,6 +8,8 @@ uniform mat4 _Model;
 uniform mat4 _View;
 uniform mat4 _Projection;
 
+uniform float time;
+
 out vec3 Normal;
 out vec3 Tangent;
 out vec2 UV;
@@ -18,6 +20,7 @@ out struct Vertex{
     vec3 WorldPos;
 }v_out;
 
+uniform int shake;
 
 void main(){    
     v_out.WorldPos = vec3(_Model * vec4(vPos,1));
@@ -39,4 +42,10 @@ void main(){
     Normal = TBN * Normal;
     v_out.WorldNormal = Normal;
     gl_Position = _Projection * _View * _Model * vec4(vPos,1);
+
+    if(shake == 1)
+    {
+        gl_Position.x += cos(time * 10) * .01;
+        gl_Position.y += cos(time * 15) * .01;
+    }
 }
