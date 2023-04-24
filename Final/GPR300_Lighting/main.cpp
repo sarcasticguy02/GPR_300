@@ -30,6 +30,7 @@ void keyboardCallback(GLFWwindow* window, int keycode, int scancode, int action,
 void mouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 void mousePosCallback(GLFWwindow* window, double xpos, double ypos);
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+void renderObjects(Shader& shader, ew::Transform& obj, ew::Mesh& mesh);
 
 float lastFrameTime;
 float deltaTime;
@@ -60,6 +61,8 @@ bool wireFrame = false;
 
 const char* woodFile = "wood.png";
 const char* normalWood = "woodNormal.png";
+
+float blurrSize;
 
 GLuint createTexture(const char* filePath)
 {
@@ -302,21 +305,10 @@ int main() {
 
 		litShader.setFloat("_Time", time);
 
-		//Draw cube
-		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
-		cubeMesh.draw();
-
-		//Draw sphere
-		litShader.setMat4("_Model", sphereTransform.getModelMatrix());
-		sphereMesh.draw();
-
-		//Draw cylinder
-		litShader.setMat4("_Model", cylinderTransform.getModelMatrix());
-		cylinderMesh.draw();
-
-		//Draw plane
-		litShader.setMat4("_Model", planeTransform.getModelMatrix());
-		planeMesh.draw();
+		renderObjects(litShader, cubeTransform, cubeMesh);
+		renderObjects(litShader, sphereTransform, sphereMesh);
+		renderObjects(litShader, cylinderTransform, cylinderMesh);
+		renderObjects(litShader, planeTransform, planeMesh);
 
 		//Draw light as a small sphere using unlit shader, ironically.
 		unlitShader.use();
@@ -353,6 +345,7 @@ int main() {
 		ImGui::End();
 
 		ImGui::Begin("Effects");
+		//ImGui::DropDownMenu
 		ImGui::Checkbox("Bloodlust", &red);
 		ImGui::Checkbox("Shake", &shake);
 		ImGui::End();
@@ -371,6 +364,13 @@ int main() {
 	glfwTerminate();
 	return 0;
 }
+
+void renderObjects(Shader& shader, ew::Transform& obj, ew::Mesh& mesh)
+{
+	shader.setMat4("_Model", obj.getModelMatrix());
+	mesh.draw();
+}
+
 //Author: Eric Winebrenner
 void resizeFrameBufferCallback(GLFWwindow* window, int width, int height)
 {

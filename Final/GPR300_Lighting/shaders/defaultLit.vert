@@ -43,6 +43,7 @@ void main(){
     v_out.WorldNormal = Normal;
     gl_Position = _Projection * _View * _Model * vec4(vPos,1);
 
+    //https://learnopengl.com/In-Practice/2D-Game/Postprocessing
     if(shake == 1)
     {
         gl_Position.x += cos(time * 10) * .01;
