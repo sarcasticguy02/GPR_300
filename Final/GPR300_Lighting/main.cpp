@@ -126,7 +126,11 @@ struct PLight {
 PLight Plight;
 Material mat;
 //Effects
-bool shake = false, inverse = false, grey = false, red = false;
+int currentBlur = 0;
+const char* blurNames[4] =
+{ "Horizontal", "Box", "Gaussian", "Directional"};
+float kernel = 10, quality = 3, size = 8, angle = 45, strength = .05;
+int samples = 50;
 
 int main() {
 	if (!glfwInit()) {
@@ -284,14 +288,7 @@ int main() {
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
 		litShader.setFloat("time", time);
-		if (shake)
-		{
-			litShader.setInt("shake", 1);
-		}
-		else
-		{
-			litShader.setInt("shake", 0);
-		}
+		litShader.setInt("shake", 0);
 		//litShader.setVec3("_LightPos", lightTransform.position);
 
 		litShader.setVec3("_PLights.color", Plight.color);
@@ -327,6 +324,14 @@ int main() {
 		framebuff.use();
 		framebuff.setInt("text", 2);
 		framebuff.setFloat("_Time", time);
+		//Blur
+		framebuff.setInt("activeBlur", currentBlur);
+		framebuff.setFloat("kernel", kernel);
+		framebuff.setFloat("quality", quality);
+		framebuff.setFloat("size", size);
+		framebuff.setInt("samples", samples);
+		framebuff.setFloat("angle", angle);
+		framebuff.setFloat("strength", strength);
 		quadMesh.draw();
 
 		//Draw UI
@@ -344,10 +349,14 @@ int main() {
 		ImGui::SliderFloat3("Light Position", &Plight.pos.x, -5, 5);
 		ImGui::End();
 
-		ImGui::Begin("Effects");
-		//ImGui::DropDownMenu
-		ImGui::Checkbox("Bloodlust", &red);
-		ImGui::Checkbox("Shake", &shake);
+		ImGui::Begin("Blurring");
+		ImGui::Combo("Blur", &currentBlur, blurNames, IM_ARRAYSIZE(blurNames));
+		ImGui::SliderFloat("Kernel", &kernel, 1, 20);
+		ImGui::SliderFloat("Quality", &quality, 1, 10);
+		ImGui::SliderFloat("Size", &size, 1, 20);
+		ImGui::SliderInt("Samples", &samples, 30, 70);
+		ImGui::SliderFloat("Angle", &angle, 1, 90);
+		ImGui::SliderFloat("Strength", &strength, 0, .1);
 		ImGui::End();
 
 		ImGui::Render();
